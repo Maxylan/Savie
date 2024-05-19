@@ -1,0 +1,19 @@
+{
+  "manifest_version": 2,
+  "name": "Savie",
+  "version": "1.0",
+
+  "description": "",
+
+  "icons": {
+    "48": "icons/savie-48.ico"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "js": ["dist/savie.js"]
+    }
+  ]
+}
+

@@ -1,0 +1,13 @@
+// @Maxylan
+import { Status, ActionResult } from '../index';
+
+export const xpath = "//*[contains(translate(., '€KRONOR:-SEK', '€kronor:-sek'), '€') or contains(translate(., '€KRONOR:-SEK', '€kronor:-sek'), 'kr') or contains(translate(., '€KRONOR:-SEK', '€kronor:-sek'), 'kronor') or contains(translate(., '€KRONOR:-SEK', '€kronor:-sek'), ':-') or contains(translate(., '€KRONOR:-SEK', '€kronor:-sek'), 'sek') or normalize-space(translate(., '0123456789', '0123456789')) != '']"
+
+export default function Transform(): ActionResult {
+    return {
+        status: Status.Success,
+        message: 'Hello, Savie!',
+        // data?: any,
+        // callback?: (prev) => ActionResult
+    };
+}
