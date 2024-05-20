@@ -1,6 +1,9 @@
 // Quick little browser plugin to make saving money a bit more exciting
 // By @Maxylan
 //
+import Transform from './actions/transform';
+
+declare var browser: any;
 declare global {
     type Savie = {
         keyDownEvent?: any
@@ -14,14 +17,16 @@ declare global {
 var d = document as DocumentExtended;
 d.savie = {};
 
-import icon from './icons/savie-48.ico';
-import homieIcon from './icons/Homie.ico';
-import homieIconAsPNG from './icons/Homie.png';
-if (icon && homieIcon && homieIconAsPNG) {
-    console.debug('%cSavie Assets Loaded', 'color: grey; font-size: 8px;');
+export const StoragePrefix = 'savie_';
+export const StorageKeys = (type: string, ...keys: string[]) => 
+    keys.map(k => `${StoragePrefix}_${type}_${keys}`);
+export const Storage = async (type: string, ...keys: string[]) => 
+    browser.storage[type]?.get(StorageKeys(type, ...keys));
+export const Store = async (type: string, ...kvp: { key: string, value: any }[]) => {
+    let obj: any = {};
+    kvp.forEach(_ => obj[`${StoragePrefix}_${type}_${_.key}`] = _.value);
+    browser.storage[type]?.set(obj);
 }
-
-import Transform from './actions/transform';
 
 export enum Status {
     Success,
@@ -33,13 +38,14 @@ export type ActionResult = {
     status: Status,
     message: string,
     data?: any,
-    callback?: (prev: ActionResult) => ActionResult
+    callback?: (prev: ActionResult) => Promise<ActionResult>,
+    callbackCount?: number
 };
 
 /**
  * Map keys to actions.
  */
-const action = (keyCode: number): ActionResult => {
+const action = async (keyCode: number): Promise<ActionResult> => {
     try {
         switch(keyCode) {
             /* "o" */ case 79: return Transform();
@@ -58,75 +64,103 @@ const action = (keyCode: number): ActionResult => {
     }
 }
 
+// Save border details..
+let Border: { 
+    original?: string,
+    current?: string,
+    timeout?: any
+} = {};
+
 /**
  * Helper to set the boreder, and restore it 
  * after `timeout` microseconds.
+ *
+ * A spin on Mozilla's "Getting Started" guide for extensions!
  */
 export const setBorder = (style: string, timeout: number = 3000) => {
-    // Override the current `document.body` border. 
-    // In the inlikely event a border exists, save it.
-    let _border = document.body.style.border;
+    if (!style) { return; }
+
+    // Clear current Border timeout & border (if unchanged), if any..
+    if (Border.timeout) {
+        clearTimeout(Border.timeout);
+    }
+    if (Border.current && document.body.style.border === Border.current) {
+        document.body.style.border = Border.original!;
+    }
+
+    // Save border details..
+    Border = {
+        // In the unlikely event a border exists, save it.
+        original: document.body.style.border
+    }
+
     document.body.style.border = style;
+    Border.current = style;
 
     // Restore the old body after `timeout` microseconds.
-    setTimeout(
-        () => document.body.style.border = _border,
-        timeout
-    ); 
+    Border.timeout = setTimeout(
+        () => {
+            document.body.style.border = Border.original!;
+            Border = {};
+        }, timeout
+    );
 }
 
 /**
  * Fires when an action corresponding to the given key can't be found.
  */
 export const missing = (keyCode: number, status?: string) => {
-    console.debug('%c' + (status || 'keyCode') + ': ', 'color: grey; font-size: 8px;', keyCode);
+    console.debug('%c' + (status || 'keyCode') + ': ', 'color: lightgrey; font-size: 8px;', keyCode);
     setBorder("3px solid yellow", 150);
 }
 
 /**
  * Handles visualizing "partial" success:es
  */
-export const partialSuccess = (status?: string, callback?: number) => {
+export const partialSuccess = (status?: string, result?: ActionResult) => {
     setBorder("4px solid burlywood", 900);
+    console.log('%cSavie: ' + (status || 'Partial Success!'), 'color: burlywood; font-size: 12px;');
     
-    if (callback) {
-        console.log('%cSavie: ' + (status || 'Partial Success!'), 'color: brown; font-size: 12px;', 'Callback: ' + callback);
+    if (result?.callback || result?.callbackCount) {
+        console.debug('%cCallback: ' + result.callbackCount, 'color: burlywood; font-size: 12px;', result.callback);
     }
-    else {
-        console.log('%cSavie: ' + (status || 'Partial Success!'), 'color: brown; font-size: 12px;');
+    if (result?.data) {
+        console.debug('Data: ', result.data);
     }
 }
 
 /**
  * Handles visualizing a completely successfull run!
  */
-export const success = (status?: string, callback?: number) => {
+export const success = (status?: string, result?: ActionResult) => {
     setBorder("4px solid lightgreen", 900);
-
-    if (callback) {
-        console.log('%cSavie: ' + (status || 'Success!'), 'color: green; font-size: 12px;', 'Callback: ' + callback);
+    console.log('%cSavie: ' + (status || 'Success!'), 'color: lightgreen; font-size: 12px;');
+    
+    if (result?.callback || result?.callbackCount) {
+        console.debug('%cCallback: ' + result.callbackCount, 'color: lightgreen; font-size: 12px;', result.callback);
     }
-    else {
-        console.log('%cSavie: ' + (status || 'Success!'), 'color: green; font-size: 12px;');
+    if (result?.data) {
+        console.debug('Data: ', result.data);
     }
 }
 
 /**
  * Handles visualizing & logging errors.
  */
-export const fail = (ex: any, callback?: number) => {
+export const fail = (ex: any, result?: ActionResult) => {
     setBorder("5px solid red"); // 3s, default timeout.
-
-    if (callback) {
-        console.error('Savie Error on callback #'+callback+': ', ex);
+    console.error('Savie Error: ', ex);
+    
+    if (result?.callback || result?.callbackCount) {
+        console.error('On Callback #' + result.callbackCount, result.callback);
     }
-    else {
-        console.error('Savie Error: ', ex);
+    if (result?.data) {
+        console.debug('Data: ', result.data);
     }
 }
 
 // Todo, improve this
-const init = (e: any) => {
+const init = async (e: any) => {
     if (!e.altKey || 
         e.keyCode === 18 || 
         e.isComposing || 
@@ -135,15 +169,18 @@ const init = (e: any) => {
         return;
     }
 
-    let result: ActionResult = action(e.keyCode);
-    let callbackCounter: number = 0;
+    let result: ActionResult = await action(e.keyCode);
+    
+    if (result.callback) {
+        result.callbackCount = 0;
+    }
 
     // Continue executing returned callbacks, if any..
     while (result.callback) {
-        callbackCounter++;
-        result = result.callback(result);
+        (result.callbackCount!)++;
+        result = await result.callback(result);
 
-        if (callbackCounter > 16) { 
+        if (result.callbackCount! > 16) { 
             if (!result.data) {
                 result.data = {}
             }
@@ -155,13 +192,13 @@ const init = (e: any) => {
 
     switch(result.status) {
         case Status.Success:
-            success(result.message, callbackCounter || undefined);
+            success(result.message, result);
             break;
         case Status.PartialSuccess:
-            partialSuccess(result.message, callbackCounter);
+            partialSuccess(result.message, result);
             break;
         case Status.Failure:
-            fail(result, callbackCounter);
+            fail(result, result);
             break;
         default: // Status.Missing
             missing(e.keyCode, result.message);
@@ -176,5 +213,5 @@ if (!d.savie.keyDownEvent) {
         'keydown', d.savie.keyDownEvent
     );
 
-    console.debug('%cSavie Loaded', 'color: grey; font-size: 8px;');
+    console.debug('%cSavie Loaded', 'color: lightgrey; font-size: 8px;');
 }

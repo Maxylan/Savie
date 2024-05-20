@@ -1,19 +1,50 @@
 {
-  "manifest_version": 2,
-  "name": "Savie",
-  "version": "1.0",
+    "manifest_version": 2,
+    "name": "Savie",
+    "version": "1.0",
+    "description": "Makes saving fun!",
 
-  "description": "",
+    "permissions": [
+        "activeTab",
+        "storage"
+    ],
 
-  "icons": {
-    "48": "savie-48.ico"
-  },
+    "icons": {
+        "48": "icons/savie-48.ico"
+    },
+  
+    "browser_action": {
+        "default_icon": {
+            "48": "icons/savie-48.ico"
+        },
+        "default_title": "Savie",
+        "default_popup": "savie.html"
+    },
+    "commands": {
+        "_execute_browser_action": {
+            "suggested_key": {
+                "default": "Shift+Alt+O"
+            }
+        }
+    },
 
-  "content_scripts": [
-    {
-      "matches": ["*://*/*"],
-      "js": ["savie.js"]
+    "content_scripts": [
+        {
+            "matches": ["*://*/*"],
+            "js": ["index.js"]
+        }
+    ],
+
+    "browser_specific_settings": {
+        "gecko": {
+            "strict_min_version": "42.0"
+        },
+        "gecko_android": {
+            "strict_min_version": "113.0"
+        },
+        "safari": {
+            "strict_min_version": "14"
+        }
     }
-  ]
 }
 

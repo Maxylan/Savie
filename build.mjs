@@ -18,15 +18,22 @@ await esbuild.build({
     sourcemap: 'both', // Change for prod.
     minify: false, // Change for prod.
     bundle: true,
-    entryPoints: ['src/index.ts'],
+    entryPoints: [
+        'src/index.ts', 
+        'src/manifest.json', 
+        'src/savie.ts',
+        'src/savie.html'
+    ],
     assetNames: '[name]',
     loader: {
         '.json': 'copy',
+        '.html': 'copy',
         '.png': 'file',
         '.jpg': 'file',
         '.ico': 'file',
         '.svg': 'file'
     },
     outbase: 'src',
-    outfile: 'dist/savie.js'
+    // outfile: 'dist/savie.js'
+    outdir: 'dist'
 })
