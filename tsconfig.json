@@ -2,13 +2,14 @@
 	"compilerOptions": {
 		"target": "ES2020",
 		"module": "commonjs",
-		"esModuleInterop": true,
+		"resolveJsonModule": true,
+        "esModuleInterop": true,
 		"isolatedModules": true,
 		"forceConsistentCasingInFileNames": true,
 		"strict": true,
 		"outDir": "./dist",
 		"rootDir": "./src"
 	},
-	"include": ["src"],
+	"include": ["src", "src/icons"],
 	"exclude": ["node_modules"]
 }

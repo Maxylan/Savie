@@ -6,13 +6,13 @@
   "description": "",
 
   "icons": {
-    "48": "icons/savie-48.ico"
+    "48": "savie-48.ico"
   },
 
   "content_scripts": [
     {
       "matches": ["*://*/*"],
-      "js": ["dist/savie.js"]
+      "js": ["savie.js"]
     }
   ]
 }

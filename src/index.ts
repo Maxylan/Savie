@@ -1,6 +1,26 @@
 // Quick little browser plugin to make saving money a bit more exciting
 // By @Maxylan
 //
+declare global {
+    type Savie = {
+        keyDownEvent?: any
+    }
+
+    type DocumentExtended = Document & {
+        savie: Savie;
+    }
+}
+
+var d = document as DocumentExtended;
+d.savie = {};
+
+import icon from './icons/savie-48.ico';
+import homieIcon from './icons/Homie.ico';
+import homieIconAsPNG from './icons/Homie.png';
+if (icon && homieIcon && homieIconAsPNG) {
+    console.debug('%cSavie Assets Loaded', 'color: grey; font-size: 8px;');
+}
+
 import Transform from './actions/transform';
 
 export enum Status {
@@ -46,7 +66,7 @@ export const setBorder = (style: string, timeout: number = 3000) => {
     // Override the current `document.body` border. 
     // In the inlikely event a border exists, save it.
     let _border = document.body.style.border;
-    document.body.style.border = "5px solid red";
+    document.body.style.border = style;
 
     // Restore the old body after `timeout` microseconds.
     setTimeout(
@@ -150,7 +170,11 @@ const init = (e: any) => {
 }
 
 // Init..
-if (!document.body.onkeydown) {
-    document.body.onkeydown = init;
-    document.body.addEventListener('keydown', init);
+if (!d.savie.keyDownEvent) {
+    d.savie.keyDownEvent = init;
+    document.body.addEventListener(
+        'keydown', d.savie.keyDownEvent
+    );
+
+    console.debug('%cSavie Loaded', 'color: grey; font-size: 8px;');
 }
