@@ -2,10 +2,33 @@
 <html>
     <head>
         <title>Savie</title>
-        <script type="text/javascript" src="/savie.js"></script>
+        <meta charset='UTF-8'/>
+        <link media="all" rel="stylesheet" href="savie.css">
     </head>
     <body>
-        <p>Savie</p>
-        <button id="test">Test</button>
+        <div id="root">
+            <header>
+                <img src="icons/savie-48.ico" alt="">
+                <h3>Savie</h3>
+            </header>
+            <div id="select">
+                <div id="relative-select-wrapper">
+                    <p class="select-choice" id="choose-settings">Settings</p>
+                    <p class="select-choice" id="choose-income">Income</p>
+                    <span id="absolute-selector"/>
+                </div>
+            </div>
+            <div class="page" id="settings-page">
+                <form id="settings"></form>
+            </div>
+            <div class="page" id="income-page">
+                <form id="income"></form>
+                <button class="button" id="add-income">➕ Income</button>
+            </div>
+            <footer>
+                <button type="submit" class="button" id="form-submit">💾 Save</button>
+            </footer>
+        </div>
+        <script type="text/javascript" src="savie.js"></script>
     </body>
 </html>

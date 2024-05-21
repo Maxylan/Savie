@@ -2,8 +2,8 @@
 // By @Maxylan
 //
 import Transform from './actions/transform';
+import Test from './actions/test';
 
-declare var browser: any;
 declare global {
     type Savie = {
         keyDownEvent?: any
@@ -16,17 +16,6 @@ declare global {
 
 var d = document as DocumentExtended;
 d.savie = {};
-
-export const StoragePrefix = 'savie_';
-export const StorageKeys = (type: string, ...keys: string[]) => 
-    keys.map(k => `${StoragePrefix}_${type}_${keys}`);
-export const Storage = async (type: string, ...keys: string[]) => 
-    browser.storage[type]?.get(StorageKeys(type, ...keys));
-export const Store = async (type: string, ...kvp: { key: string, value: any }[]) => {
-    let obj: any = {};
-    kvp.forEach(_ => obj[`${StoragePrefix}_${type}_${_.key}`] = _.value);
-    browser.storage[type]?.set(obj);
-}
 
 export enum Status {
     Success,
@@ -49,6 +38,7 @@ const action = async (keyCode: number): Promise<ActionResult> => {
     try {
         switch(keyCode) {
             /* "o" */ case 79: return Transform();
+            /* "o" */ case 80: return Test();
             default: return {
                 status: Status.Missing,
                 message: 'Nothing mapped to keyCode: ' + keyCode

@@ -22,7 +22,8 @@ await esbuild.build({
         'src/index.ts', 
         'src/manifest.json', 
         'src/savie.ts',
-        'src/savie.html'
+        'src/savie.html',
+	'src/savie.css'
     ],
     assetNames: '[name]',
     loader: {
