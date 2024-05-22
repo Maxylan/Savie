@@ -4,16 +4,6 @@
 import Transform from './actions/transform';
 import Test from './actions/test';
 
-declare global {
-    type Savie = {
-        keyDownEvent?: any
-    }
-
-    type DocumentExtended = Document & {
-        savie: Savie;
-    }
-}
-
 var d = document as DocumentExtended;
 d.savie = {};
 
