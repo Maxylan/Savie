@@ -106,6 +106,7 @@ div.page.selected {
 
 .single-income, fieldset {
     margin: 0.25rem;
+    padding: 0.125rem;
     display: flex;
     align-items: center;
 }

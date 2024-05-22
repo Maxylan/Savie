@@ -2,12 +2,14 @@
 import { 
     Status, ActionResult 
 } from './index';
+
 declare type Helement = Node & Element;
 var d = document as DocumentExtended;
-var browser: any = browser;
 if (!d.savie) {
     d.savie = {}
 }
+
+var browser: any = browser;
 
 // Ensure compatibility during testing..
 var compat: any = {}

@@ -4,6 +4,7 @@
     "version": "1.0",
     "description": "Makes saving fun!",
 
+    "content_security_policy": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'",
     "permissions": [
         "activeTab",
         "storage"
