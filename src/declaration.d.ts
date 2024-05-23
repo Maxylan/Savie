@@ -9,10 +9,11 @@ declare module '*.ico';
 declare module '*.svg';
 
 type Savie = {
-    spawnIncome?: (event: any) => void,
+    spawnIncome?: (e: any, inc?: Income) => void,
     keyDownEvent?: any,
-    onSliderInput?: (event: any) => void,
-    onInput?: (event: any) => void,
+    onIncomeSliderInput?: (event: any) => void,
+    onIncomeInput?: (event: any) => void,
+    onIncomeChange?: (event: any, income_id: number) => void,
 }
 
 type DocumentExtended = Document & {

@@ -92,7 +92,7 @@ const updateIncomeWithValue = (id: number, value: number) => {
 /**
  * 
  */
-d.savie.onSliderInput = (e: any) => {
+d.savie.onIncomeSliderInput = (e: any) => {
     const id = e.target.id.substr(0, e.target.id.length - 7);
     const input: HTMLInputElement|null = d.querySelector(`#${id}-input`);
     const info: HTMLElement|null = d.querySelector(`#${id} .single-income-info p`);
@@ -112,7 +112,7 @@ d.savie.onSliderInput = (e: any) => {
 /**
  * 
  */
-d.savie.onInput = (e: any) => {
+d.savie.onIncomeInput = (e: any) => {
     const id = e.target.id.substr(0, e.target.id.length - 6);
     const slider: HTMLInputElement|null = d.querySelector(`#${id}-slider`);
     const info: HTMLElement|null = d.querySelector(`#${id} .single-income-info p`);
@@ -129,75 +129,141 @@ d.savie.onInput = (e: any) => {
     buttons.forEach((b: Node) => (b as Helement).setAttribute('data-value', e.target.value));
 }
 
-const spawn = (hookElement: Element) => {
-    
-    return {
-        income: (inc: Income) => {
-            const id = 'single-income-' + inc.id;
-            const singleIncome = stringToHTML('<div class="single-income" id="'+id+'"></div>'); 
-            const incomeField = stringToHTML(
-                '<fieldset class="income-container">' +
-                '<input type="number" id="'+id+'-input" class="income-input" min="0" max="30000" step="100" value="'+inc.value+'" oninput="document.savie.onInput(event)">' +
-                '<input type="range" id="'+id+'-slider" class="income-slider" min="0" max="30000" step="100" value="'+inc.value+'" oninput="document.savie.onSliderInput(event)">' +
-                '</fieldset>'
-            );
-            const dateField = stringToHTML(
-                '<fieldset class="date-container">' +
-                '<div class="date-input-start-wrapper">' +
-                '<label for="'+id+'-start" class="income-label">From:</label>' +
-                '<input type="date" id="'+id+'-start" class="date-input">' +
-                '</div>' +
-                '<div class="date-input-end-wrapper">' +
-                '<label for="'+id+'-end" class="income-label">To:</label>' +
-                '<input type="date" id="'+id+'-end" class="date-input">' +
-                '</div>' +
-                '</fieldset>'
-            ); 
-            const singleIncomeInfoAndActions = stringToHTML(
-                '<div class="single-income-info-and-actions">' +
-                '<div class="single-income-info">' +
-                '<p'+(inc.value > 0 ? '':' style="display:none;"')+'>' +
-                    (inc.value > 0 ? inc.value+' :-':'') +
-                '</p>' +
-                '</div>' +
-                '<div class="single-income-actions">' +
-                '<button type="button" class="button copy-single-income" disabled="true" onClick="' +
-                'document.savie.spawnIncome(event)' +
-                '" data-value="'+inc.value+'">📋</button>' +
-                '<button type="button" class="button remove-single-income" onClick="' +
-                'document.getElementById(\''+id+'\').remove()' +
-                '" data-value="'+inc.value+'">🗑️</button>' +
-                '</div>' +
-                '</div>'
-            );
-            
-            singleIncome.append(incomeField as Node);
-            singleIncome.append(dateField as Node);
-            singleIncome.append(singleIncomeInfoAndActions as Node);
-            
-            hookElement.append(singleIncome as Node);
+/**
+ * 
+ */
+d.savie.onIncomeChange = async (e: any, income_id: number) => {
+    let storage: IncomeStorage = await browser.storage.local.get('incomes');
+    console.log('change - e, income_id', e, income_id, storage);
+    let incomeIndex: number = storage.incomes!.findIndex((_:any) => _.id === income_id);
+
+    if (incomeIndex !== -1) { 
+        switch(e.target.type) {
+            case 'date':
+                console.log('Curious..', e.target.value);
+                if (e.target.id.endsWith('start')) {
+                    storage.incomes![incomeIndex].start = e.target.value;
+                }
+                else {
+                    storage.incomes![incomeIndex].end = e.target.value;
+                }
+                break;
+            default: // Like 'number', 'slider', elements where we yoink `.value`
+                storage.incomes![incomeIndex].value = e.target.value;
+                break;
         }
+        
+        const res = await browser.storage.local.set({ incomes: storage.incomes });
+        // const res = await browser.storage.local.set(storage);
+        console.log('set: ', storage, res);
     }
 }
+
+function spawnIncome(hookElement: Element, inc: Income) {
+    const id = 'single-income-' + inc.id;
+    const singleIncome = stringToHTML('<div class="single-income" id="'+id+'" data-income-id="'+inc.id+'"></div>'); 
+    const incomeField = stringToHTML(
+        '<fieldset class="income-container">' +
+        '<input type="number" id="'+id+'-input" class="income-input" ' +
+        'min="0" max="30000" step="100" value="'+inc.value+'">' +
+        '<input type="range" id="'+id+'-slider" class="income-slider" '+ 
+        'min="0" max="30000" step="100" value="'+inc.value+'">' +
+        '</fieldset>'
+    );
+    
+    (incomeField
+        .querySelector('input.income-input') as HTMLInputElement)
+        .addEventListener('input', (e: any) => d.savie!.onIncomeInput!(e));
+    (incomeField
+        .querySelector('input.income-slider') as HTMLInputElement)
+        .addEventListener('input', (e: any) => d.savie!.onIncomeSliderInput!(e)); 
+    (incomeField
+        .querySelectorAll('input') as NodeList /* HTMLInputElement[] */)
+        .forEach((input: any) => 
+            input.addEventListener('change', (e: any) => d.savie!.onIncomeChange!(e, inc.id))
+        ); 
+    
+    const dateField = stringToHTML(
+        '<fieldset class="date-container">' +
+        '<div class="date-input-start-wrapper">' +
+        '<label for="'+id+'-start" class="income-label">From:</label>' +
+        '<input type="date" id="'+id+'-start" class="date-input" value="'+inc.start+'">' +
+        '</div>' +
+        '<div class="date-input-end-wrapper">' +
+        '<label for="'+id+'-end" class="income-label">To:</label>' +
+        '<input type="date" id="'+id+'-end" class="date-input" value="'+inc.end+'">' +
+        '</div>' +
+        '</fieldset>'
+    );
+    
+    (dateField
+        .querySelectorAll('input') as NodeList /* HTMLInputElement[] */)
+        .forEach((input: any) => 
+            input.addEventListener('change', (e: any) => d.savie!.onIncomeChange!(e, inc.id))
+        ); 
+
+    const singleIncomeInfoAndActions = stringToHTML(
+        '<div class="single-income-info-and-actions">' +
+        '<div class="single-income-info">' +
+        '<p'+(inc.value > 0 ? '':' style="display:none;"')+'>' +
+            (inc.value > 0 ? inc.value+' :-':'') +
+        '</p>' +
+        '</div>' +
+        '<div class="single-income-actions">' +
+        '<button type="button" class="button copy-single-income" data-value="'+inc.value+'">📋</button>' +
+        '<button type="button" class="button remove-single-income">🗑️</button>' +
+        '</div>' +
+        '</div>'
+    );
+
+    (singleIncomeInfoAndActions
+        .querySelector('button.copy-single-income') as HTMLButtonElement)
+        .addEventListener('click', (e) => {
+            console.log('click', inc);
+            d.savie!.spawnIncome!(e, inc)
+        });
+    (singleIncomeInfoAndActions
+        .querySelector('button.remove-single-income') as HTMLButtonElement)
+        .addEventListener('click', () => singleIncome.remove()); 
+    
+    singleIncome.append(incomeField as Node);
+    singleIncome.append(dateField as Node);
+    singleIncome.append(singleIncomeInfoAndActions as Node);
+    
+    hookElement.append(singleIncome as Node);
+};
 
 /**
  *
  */
-d.savie.spawnIncome = async (e: any) => {
-    const incomeForm: Helement = d.querySelector('form#income')!;
+d.savie.spawnIncome = async (e: any, inc?: Income) => { 
+    let storage: IncomeStorage = await browser.storage.local.get('incomes');
+    let incomes: Income[] = storage?.incomes ?? [];
+    let incomeIDs: number[] = incomes.map(_ => _.id);
+    let incomeIndex: number = (inc && incomes.findIndex((_:any) => _.id === inc.id)) ?? -1;
+    let maxId: number = 1 + (
+        incomes.length && Math.max(...incomeIDs) 
+    );
+
+    let newIncome: Income = incomeIndex > -1 
+        ? {
+            ...incomes[incomeIndex],
+            id: maxId
+        }
+        : { 
+            value: e.target?.dataset?.value ?? 0,
+            id: maxId
+        };
+
+    // Use `inc` values, if given.
+    if (inc?.value) { newIncome.value = inc!.value }
+    if (inc?.start) { newIncome.start = inc!.start }
+    if (inc?.end) { newIncome.end = inc!.end }
+
+    incomes.push(newIncome);    
     
-    let incomes: Income[] = (
-        await browser.storage.local.get('incomes')
-    )?.incomes ?? [];
-
-    let lastId: number = 1 + (incomes.length == 0 ? 0 : Math.max(...incomes.map(_ => _.id)));
-    let newIncome: Income = { 
-        id: lastId,
-        value: e.target?.dataset?.value ?? 0
-    }
-
-    spawn(incomeForm).income(newIncome);
-    incomes.push(newIncome);
+    const incomeForm: Helement = d.querySelector('div#incomes')!;
+    spawnIncome(incomeForm, newIncome);
 
     await browser.storage.local.set({ incomes: incomes });
 }
@@ -206,16 +272,15 @@ d.savie.spawnIncome = async (e: any) => {
 document.addEventListener('DOMContentLoaded', async (_) => { 
     const settingsPage: Helement = d.querySelector('.page#settings-page')!;
     const incomePage: Helement = d.querySelector('.page#income-page')!;
-    const incomeForm: Helement = d.querySelector('form#income')!;
+    const incomeContainer: Helement = d.querySelector('div#incomes')!;
 
     // Give one of the forms `.selected`
     // settingsPage.classList.add(selected);
     incomePage.classList.add(selected); 
  
     // Grab `income` from storage, and spawn a 'single-income' per stored income.
-    let storage: IncomeStorage = (
-        await browser.storage.local.get('incomes')
-    );
+    let storage: IncomeStorage = await browser.storage.local.get('incomes');
+    console.log('load, get: ', storage);
 
     if (!storage.incomes) { 
         storage.incomes = [{ 
@@ -223,10 +288,10 @@ document.addEventListener('DOMContentLoaded', async (_) => {
             id: 0
         }];
 
-        await browser.storage.local.set(storage);
+        await browser.storage.local.set({ incomes: storage.incomes });
     };
-
-    storage.incomes.forEach((_: Income) => spawn(incomeForm).income(_));
+ 
+    storage.incomes.forEach((_: Income) => spawnIncome(incomeContainer, _));
 
     d.querySelector('button#add-income')!.addEventListener('click', d.savie.spawnIncome!);
 });

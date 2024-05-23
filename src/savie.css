@@ -1,42 +1,4 @@
-/*
-IDs:
-
-    root
-    select
-    relative-select-wrapper
-    choose-settings
-    choose-income
-    absolute-selector
-    settings-page
-    settings
-    add-income
-    income-page
-    income
-    form-submit
-
-Classes:
-
-    button
-    select-choice
-    selected
-    page
-    single-income
-    remove-single-income
-    income-container
-    income-input
-    income-label
-    income-slider
-    date-input
-
-Elements:
-
-    header
-    div
-    fieldset
-    span
-    form
-    footer
-*/
+/* @Maxylan */
 
 body {
     font-family: "Noto Sans", Roboto, monospace;
@@ -46,11 +8,6 @@ body {
 .page {
     display: none;
     width: fit-content;
-}
-
-.page form {
-    display: flex;
-    flex-direction: column;
 }
 
 div.page.selected {
@@ -169,11 +126,24 @@ input[type="date"], input[type="number"] {
     background: #FDDDDD;
 }
 
-form#income {
+form[name="income"] {
     border: none;
     border-radius: 0.5rem;
     background: #F9F9F9;
     box-shadow: 0 0 0.25rem 0.125rem rgba(0,0,0,0.2) inset;
     -webkit-box-shadow: 0 0 0.25rem 0.125rem rgba(0,0,0,0.2) inset;
     padding: 0.75rem;
+}
+
+div#incomes {
+    display: flex;
+    flex-direction: column;
+}
+
+button#add-income {
+    height: fit-content;
+    width: fit-content;
+    max-height: 2rem;
+    max-width: 2rem;
+    font-size: 1.25rem;
 }
