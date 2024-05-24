@@ -2,10 +2,10 @@
 /**
  * 
  */
-d.savie.onIncomeChange = async (e: any, income_id: number) => {
+const onIncomeChange = async (e: any, income_id: number) => {
     let storage: IncomeStorage = await browser.storage.local.get('incomes');
-    console.log('change - e, income_id', e, income_id, storage);
     let incomeIndex: number = storage.incomes!.findIndex((_:any) => _.id === income_id);
+    console.log('change - e, income_id', e, income_id, storage);
 
     if (incomeIndex !== -1) { 
         switch(e.target.type) {
@@ -23,8 +23,9 @@ d.savie.onIncomeChange = async (e: any, income_id: number) => {
                 break;
         }
         
-        const res = await browser.storage.local.set({ incomes: storage.incomes });
-        // const res = await browser.storage.local.set(storage);
-        console.log('set: ', storage, res);
+        // const res = await browser.storage.local.set({ incomes: storage.incomes });
+        const res = await browser.storage.local.set(storage);
     }
 }
+
+export default onIncomeChange;

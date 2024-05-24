@@ -21,9 +21,9 @@ await esbuild.build({
     entryPoints: [
         'src/index.ts', 
         'src/manifest.json', 
-        'src/savie.ts',
-        'src/savie.html',
-	'src/savie.css'
+        'src/popup/controller.ts',
+        'src/popup/savie.html',
+        'src/popup/savie.css'
     ],
     assetNames: '[name]',
     loader: {

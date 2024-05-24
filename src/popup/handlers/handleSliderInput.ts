@@ -1,8 +1,10 @@
 // @Maxylan
+import { Helement } from '../controller';
+
 /**
  * 
  */
-d.savie.onIncomeSliderInput = (e: any) => {
+const onIncomeSliderInput = (e: any) => {
     const id = e.target.id.substr(0, e.target.id.length - 7);
     const input: HTMLInputElement|null = d.querySelector(`#${id}-input`);
     const info: HTMLElement|null = d.querySelector(`#${id} .single-income-info p`);
@@ -18,3 +20,5 @@ d.savie.onIncomeSliderInput = (e: any) => {
 
     buttons.forEach((b: Node) => (b as Helement).setAttribute('data-value', e.target.value));
 }
+
+export default onIncomeSliderInput;

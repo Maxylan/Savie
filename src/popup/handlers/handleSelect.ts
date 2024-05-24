@@ -1,9 +1,12 @@
 // @Maxylan
-const selected = 'selected';
-const choose = {
-    settings: 'choose-settings',
-    income: 'choose-income'
+import { Helement } from '../controller';
+
+export const selected = 'selected';
+export enum Choose {
+    settings = 'choose-settings',
+    income = 'choose-income'
 }
+
 const selectChoice = (e: any) => {
     let el: Helement = e.target;
     if (!el.classList.contains(selected)) {
@@ -16,12 +19,14 @@ const selectChoice = (e: any) => {
         incomePage.classList.toggle(selected);
 
         switch(el.id) {
-            case choose.settings:
+            case Choose.settings:
                 incomePage.querySelector('form#income')!.setAttribute('disabled', 'true');
                 break;
-            case choose.income:
+            case Choose.income:
                 settingsPage.querySelector('form#settings')!.setAttribute('disabled', 'true');
                 break;
         }
     }
 };
+
+export default selectChoice;

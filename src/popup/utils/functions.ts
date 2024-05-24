@@ -1,5 +1,8 @@
 // @Maxylan
-import { Helement } from '../controller'
+import { Helement } from '../controller';
+import onIncomeInput from '../handlers/handleInput';
+import onIncomeSliderInput from '../handlers/handleSliderInput';
+import onIncomeChange from '../handlers/handleChange';
 
 /**
  * Create an HTML Element / Node (`Helement`) from a string-representation.
@@ -25,6 +28,41 @@ export const stringToHTML = (html: string, trim: boolean = true): Helement => {
 /**
  *
  */
+export const spawnIncomeFromEvent = async (e: any, inc?: Income) => { 
+    let storage: IncomeStorage = await browser.storage.local.get('incomes');
+    let incomes: Income[] = storage?.incomes ?? [];
+    let incomeIDs: number[] = incomes.map(_ => _.id);
+    let incomeIndex: number = (inc && incomes.findIndex((_:any) => _.id === inc.id)) ?? -1;
+    let maxId: number = 1 + (
+        incomes.length && Math.max(...incomeIDs) 
+    );
+
+    let newIncome: Income = incomeIndex > -1 
+        ? {
+            ...incomes[incomeIndex],
+            id: maxId
+        }
+        : { 
+            value: e.target?.dataset?.value ?? 0,
+            id: maxId
+        };
+
+    // Use `inc` values, if given.
+    if (inc?.value) { newIncome.value = inc!.value }
+    if (inc?.start) { newIncome.start = inc!.start }
+    if (inc?.end) { newIncome.end = inc!.end }
+
+    incomes.push(newIncome);    
+    
+    const incomeForm: Helement = d.querySelector('div#incomes')!;
+    spawnIncome(incomeForm, newIncome);
+
+    await browser.storage.local.set({ incomes: incomes });
+}
+
+/**
+ *
+ */
 export const spawnIncome = (hookElement: Element, inc: Income) => {
     const id = 'single-income-' + inc.id;
     const singleIncome = stringToHTML('<div class="single-income" id="'+id+'" data-income-id="'+inc.id+'"></div>'); 
@@ -39,14 +77,14 @@ export const spawnIncome = (hookElement: Element, inc: Income) => {
     
     (incomeField
         .querySelector('input.income-input') as HTMLInputElement)
-        .addEventListener('input', (e: any) => d.savie!.onIncomeInput!(e));
+        .addEventListener('input', (e: any) => onIncomeInput!(e));
     (incomeField
         .querySelector('input.income-slider') as HTMLInputElement)
-        .addEventListener('input', (e: any) => d.savie!.onIncomeSliderInput!(e)); 
+        .addEventListener('input', (e: any) => onIncomeSliderInput!(e)); 
     (incomeField
         .querySelectorAll('input') as NodeList /* HTMLInputElement[] */)
         .forEach((input: any) => 
-            input.addEventListener('change', (e: any) => d.savie!.onIncomeChange!(e, inc.id))
+            input.addEventListener('change', (e: any) => onIncomeChange!(e, inc.id))
         ); 
     
     const dateField = stringToHTML(
@@ -65,7 +103,7 @@ export const spawnIncome = (hookElement: Element, inc: Income) => {
     (dateField
         .querySelectorAll('input') as NodeList /* HTMLInputElement[] */)
         .forEach((input: any) => 
-            input.addEventListener('change', (e: any) => d.savie!.onIncomeChange!(e, inc.id))
+            input.addEventListener('change', (e: any) => onIncomeChange!(e, inc.id))
         ); 
 
     const singleIncomeInfoAndActions = stringToHTML(
@@ -84,10 +122,7 @@ export const spawnIncome = (hookElement: Element, inc: Income) => {
 
     (singleIncomeInfoAndActions
         .querySelector('button.copy-single-income') as HTMLButtonElement)
-        .addEventListener('click', (e) => {
-            console.log('click', inc);
-            d.savie!.spawnIncome!(e, inc)
-        });
+        .addEventListener('click', (e) => spawnIncomeFromEvent(e, inc));
     (singleIncomeInfoAndActions
         .querySelector('button.remove-single-income') as HTMLButtonElement)
         .addEventListener('click', () => singleIncome.remove()); 

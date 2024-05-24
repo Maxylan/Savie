@@ -9,11 +9,7 @@ declare module '*.svg';
 declare var browser: any;
 
 type Savie = {
-    spawnIncome?: (e: any, inc?: Income) => void,
     keyDownEvent?: any,
-    onIncomeSliderInput?: (event: any) => void,
-    onIncomeInput?: (event: any) => void,
-    onIncomeChange?: (event: any, income_id: number) => void,
 }
 
 type DocumentExtended = Document & {

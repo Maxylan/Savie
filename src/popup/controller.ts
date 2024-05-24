@@ -1,8 +1,15 @@
 // @Maxylan
+import selectChoice, { selected } from './handlers/handleSelect';
+import {
+    stringToHTML,
+    spawnIncomeFromEvent,
+    spawnIncome,
+} from './utils/functions';
+
 export type Helement = Node & Element;
 export const d: DocumentExtended = document as DocumentExtended;
 if (!d.savie) {
-    d.savie = {}
+   d.savie = {};
 }
 
 export enum Page {
@@ -34,41 +41,6 @@ if (typeof browser === 'undefined') {
     if (typeof browser === 'undefined') {
         (window as any).browser = fallback;
     }
-}
-
-/**
- *
- */
-d.savie.spawnIncome = async (e: any, inc?: Income) => { 
-    let storage: IncomeStorage = await browser.storage.local.get('incomes');
-    let incomes: Income[] = storage?.incomes ?? [];
-    let incomeIDs: number[] = incomes.map(_ => _.id);
-    let incomeIndex: number = (inc && incomes.findIndex((_:any) => _.id === inc.id)) ?? -1;
-    let maxId: number = 1 + (
-        incomes.length && Math.max(...incomeIDs) 
-    );
-
-    let newIncome: Income = incomeIndex > -1 
-        ? {
-            ...incomes[incomeIndex],
-            id: maxId
-        }
-        : { 
-            value: e.target?.dataset?.value ?? 0,
-            id: maxId
-        };
-
-    // Use `inc` values, if given.
-    if (inc?.value) { newIncome.value = inc!.value }
-    if (inc?.start) { newIncome.start = inc!.start }
-    if (inc?.end) { newIncome.end = inc!.end }
-
-    incomes.push(newIncome);    
-    
-    const incomeForm: Helement = d.querySelector('div#incomes')!;
-    spawnIncome(incomeForm, newIncome);
-
-    await browser.storage.local.set({ incomes: incomes });
 }
 
 // Init / Start!
@@ -121,5 +93,5 @@ document.addEventListener('DOMContentLoaded', async (_) => {
     // Init: "Incomes" page. \\
     // Spawn a 'single-income' per 'stored' income.
     storage.incomes.forEach((_: Income) => spawnIncome(incomeContainer, _));
-    d.querySelector('button#add-income')!.addEventListener('click', d.savie.spawnIncome!);
+    d.querySelector('button#add-income')!.addEventListener('click', (e) => spawnIncomeFromEvent(e));
 });
