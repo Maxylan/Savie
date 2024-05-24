@@ -24,7 +24,7 @@ const onIncomeChange = async (e: any, income_id: number) => {
         }
         
         // const res = await browser.storage.local.set({ incomes: storage.incomes });
-        const res = await browser.storage.local.set(storage);
+        await browser.storage.local.set(storage);
     }
 }
 
