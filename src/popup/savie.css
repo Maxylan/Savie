@@ -5,9 +5,30 @@ body {
     font-size: 14px;
 }
 
+div#root {
+    height: fit-content;
+    width: 24rem;
+    padding: 0.5rem;
+}
+
+header {
+    margin-bottom: 0.5rem;
+}
+
+header img, header h3 {
+    display: inline-block;
+    margin: 0 0.5rem 0 0;
+}
+
+hr {
+    background: #c8c8c8;
+    border-color: #fff;
+    color: #c8c8c8;
+}
+
 .page {
     display: none;
-    width: fit-content;
+    margin: 1rem 0;
 }
 
 div.page.selected {
@@ -22,7 +43,7 @@ div.page.selected {
     box-shadow: 0 0 0.1rem 0.1rem rgba(0,0,0,0.1) inset;
     -webkit-box-shadow: 0 0 0.1rem 0.1rem rgba(0,0,0,0.1) inset;
     padding: 0.25rem;
-    margin-bottom: 1rem;
+    margin: auto;
 }
 
 #relative-select-wrapper {
@@ -39,6 +60,10 @@ div.page.selected {
     margin: 0;
     width: 5rem;
     z-index: 3;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+    cursor: pointer;
 }
 
 #absolute-selector {
@@ -50,20 +75,27 @@ div.page.selected {
     -webkit-box-shadow: 1px 1px 0.2rem 0.1rem rgba(0,0,0,0.2);
     height: 100%;
     width: 5.5rem;
-    left: 0;
     z-index: 2;
+    transition: left 0.2s;
+    transition-timing-function: ease-out;
+}
+
+#absolute-selector.choose-settings-selected { 
+    left: 0;
+}
+#absolute-selector.choose-income-selected { 
+    left: 50%;
 }
 
 .button {
-    margin: 0.25rem;
     padding: 0.125rem 0.25rem;
     border: 1px solid #c8c8c8;
     border-radius: 0.25rem;
 }
 
 .single-income, fieldset {
-    margin: 0.25rem;
-    padding: 0.125rem;
+    margin: 0.25rem 0;
+    padding: 0.125rem 0.25rem;
     display: flex;
     align-items: center;
 }
@@ -71,13 +103,11 @@ div.page.selected {
     flex-wrap: wrap;
     flex-direction: row;
     justify-content: flex-end;
-    max-width: 18rem;
     border-radius: 0.25rem;
     border: 2px solid #c8c8c8;
 }
 fieldset { 
     flex-direction: row;
-    padding: 0;
     border: none;
 }
 
@@ -110,8 +140,24 @@ input[type="date"], input[type="number"] {
     min-width: 2.5rem;
 }
 
+input.income-input[type="number"] {
+    margin-left: 0;
+}
+
 .income-container .income-slider {
     width: -moz-available;
+}
+
+.single-income-info-and-actions {
+    display: flex;
+    flex-shrink: 1;
+    flex-wrap: 1;
+    align-items: center;
+}
+
+.single-income-info p {
+    margin: none;
+    margin-right: 1rem;
 }
 
 .single-income-info-and-actions button {
@@ -119,11 +165,22 @@ input[type="date"], input[type="number"] {
     max-width: 2rem;
     font-size: 1.25rem;
 }
-.single-income-info-and-actions button:disabled {
+
+button:disabled {
     background: #c8c8c8;
 }
+
 .remove-single-income {
     background: #FDDDDD;
+    margin-right: 0.25rem;
+}
+.remove-single-income:hover {
+    background: #EABDBD;
+}
+
+.copy-single-income {
+    margin-right: 0.5rem;
+    cursor: copy;
 }
 
 form[name="income"] {
@@ -146,4 +203,5 @@ button#add-income {
     max-height: 2rem;
     max-width: 2rem;
     font-size: 1.25rem;
+    cursor: copy;
 }

@@ -3,9 +3,9 @@ import {
     Status, ActionResult 
 } from '../index';
 
-export default async function Test(): Promise<ActionResult> {
-    
-    const storage = await browser.storage.local.get(null);
+export default async function Test(): Promise<ActionResult> {    
+    const storage: Storage = await browser.storage.local.get();
+
     return {
         status: Status.Success,
         message: 'Savie Storage Test',

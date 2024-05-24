@@ -1,5 +1,5 @@
 // @Maxylan
-import { Helement } from '../controller';
+import { d, Helement } from '../controller';
 import onIncomeInput from '../handlers/handleInput';
 import onIncomeSliderInput from '../handlers/handleSliderInput';
 import onIncomeChange from '../handlers/handleChange';
@@ -29,7 +29,7 @@ export const stringToHTML = (html: string, trim: boolean = true): Helement => {
  *
  */
 export const spawnIncomeFromEvent = async (e: any, inc?: Income) => { 
-    let storage: IncomeStorage = await browser.storage.local.get('incomes');
+    let storage: ExtStorage = await browser.storage.local.get('incomes');
     let incomes: Income[] = storage?.incomes ?? [];
     let incomeIDs: number[] = incomes.map(_ => _.id);
     let incomeIndex: number = (inc && incomes.findIndex((_:any) => _.id === inc.id)) ?? -1;
@@ -139,7 +139,7 @@ export const spawnIncome = (hookElement: Element, inc: Income) => {
  */
 export const updateIncomeWithValue = (id: number, value: number) => {
     return browser.get.storage.local('incomes').then(
-        (_: IncomeStorage) => {
+        (_:ExtStorage) => {
             _.incomes ??= [];
             let index = _.incomes.findIndex((inc: Income) => inc.id === id);
             if (index !== -1) { _.incomes[index].value = value; }

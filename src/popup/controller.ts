@@ -1,5 +1,6 @@
 // @Maxylan
-import selectChoice, { selected } from './handlers/handleSelect';
+import { Page } from '../index';
+import selectChoice, { selected, Choose } from './handlers/handleSelect';
 import {
     stringToHTML,
     spawnIncomeFromEvent,
@@ -10,11 +11,6 @@ export type Helement = Node & Element;
 export const d: DocumentExtended = document as DocumentExtended;
 if (!d.savie) {
    d.savie = {};
-}
-
-export enum Page {
-    Settings,
-    Incomes
 }
 
 var compat: any = {}
@@ -48,6 +44,7 @@ document.addEventListener('DOMContentLoaded', async (_) => {
     const settingsPage: Helement = d.querySelector('.page#settings-page')!;
     const incomePage: Helement = d.querySelector('.page#income-page')!;
     const incomeContainer: Helement = d.querySelector('div#incomes')!;
+    const absoluteSelector: Helement = d.querySelector('#absolute-selector')!;
     
     const storage: any = await browser.storage.local.get();
     console.log('load, get: ', storage);
@@ -79,14 +76,21 @@ document.addEventListener('DOMContentLoaded', async (_) => {
     } 
 
     // Give one of the forms `.selected`
-    switch(storage.states) {
+    console.log('i get here');
+    switch(storage.states.pageSelected) {
         case Page.Settings:
             settingsPage.classList.add(selected);
+            d.querySelector('#'+Choose.settings)!.classList.add(selected);
+            absoluteSelector.classList.add(`${Choose.settings}-${selected}`);
+            console.log('And Do i run');
             break;
         case Page.Incomes:
             incomePage.classList.add(selected);  
+            d.querySelector('#'+Choose.income)!.classList.add(selected);
+            absoluteSelector.classList.add(`${Choose.income}-${selected}`);
+            console.log('Do i run');
             break;
-    }
+    }    
 
     // Init: "Settings" page. \\
  
@@ -94,4 +98,9 @@ document.addEventListener('DOMContentLoaded', async (_) => {
     // Spawn a 'single-income' per 'stored' income.
     storage.incomes.forEach((_: Income) => spawnIncome(incomeContainer, _));
     d.querySelector('button#add-income')!.addEventListener('click', (e) => spawnIncomeFromEvent(e));
+    
+    // Add page-selector event handlers.
+    d.querySelectorAll('#relative-select-wrapper p').forEach(
+        (_: any) => _.addEventListener('click', selectChoice)
+    );
 });

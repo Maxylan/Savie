@@ -1,5 +1,6 @@
 // @Maxylan
-import { Helement } from '../controller';
+import { Page } from '../../index';
+import { d, Helement } from '../controller';
 
 export const selected = 'selected';
 export enum Choose {
@@ -7,25 +8,39 @@ export enum Choose {
     income = 'choose-income'
 }
 
-const selectChoice = (e: any) => {
+const selectChoice = async (e: any) => {
     let el: Helement = e.target;
     if (!el.classList.contains(selected)) {
-        el.classList.add(selected)
-
+        const absoluteSelector: Helement = d.querySelector('#absolute-selector')!;
         const settingsPage: Helement = d.querySelector('.page#settings-page')!;
         const incomePage: Helement = d.querySelector('.page#income-page')!;
         
         settingsPage.classList.toggle(selected);
         incomePage.classList.toggle(selected);
+        let selectedPage: Page;
 
         switch(el.id) {
-            case Choose.settings:
-                incomePage.querySelector('form#income')!.setAttribute('disabled', 'true');
-                break;
             case Choose.income:
-                settingsPage.querySelector('form#settings')!.setAttribute('disabled', 'true');
+                settingsPage.querySelector('form[name="settings"]')!.setAttribute('disabled', 'true');
+                selectedPage = Page.Incomes;
+                break;
+            default: // Choose.settings
+                incomePage.querySelector('form[name="income"]')!.setAttribute('disabled', 'true');
+                selectedPage = Page.Settings;
                 break;
         }
+        
+        const res: any = await browser.storage.local.set({ states: { pageSelected: selectedPage } });
+        console.log('curious - page, res', selectedPage, res);
+        
+        // Toggle `selected` classes on the "absolute"-selector wrapper.
+        absoluteSelector.classList.toggle(`${Choose.settings}-${selected}`);
+        absoluteSelector.classList.toggle(`${Choose.income}-${selected}`);
+        
+        // Toggle `selected` classes on the select-"buttons".
+        d.querySelectorAll('#relative-select-wrapper p').forEach(
+            (_: any) => (_ as Helement).classList.toggle(selected)
+        );
     }
 };
 

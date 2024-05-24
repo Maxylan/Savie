@@ -3,7 +3,7 @@
  * 
  */
 const onIncomeChange = async (e: any, income_id: number) => {
-    let storage: IncomeStorage = await browser.storage.local.get('incomes');
+    let storage: ExtStorage = await browser.storage.local.get('incomes');
     let incomeIndex: number = storage.incomes!.findIndex((_:any) => _.id === income_id);
     console.log('change - e, income_id', e, income_id, storage);
 

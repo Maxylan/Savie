@@ -10,6 +10,6 @@
 		"outDir": "./dist",
 		"rootDir": "./src"
 	},
-	"include": ["src", "src/icons"],
+	"include": ["src", "src/declaration.d.ts", "src/icons"],
 	"exclude": ["node_modules"]
 }

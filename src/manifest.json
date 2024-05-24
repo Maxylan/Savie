@@ -19,7 +19,7 @@
             "48": "icons/savie-48.ico"
         },
         "default_title": "Savie",
-        "default_popup": "savie.html"
+        "default_popup": "popup/savie.html"
     },
     "commands": {
         "_execute_browser_action": {

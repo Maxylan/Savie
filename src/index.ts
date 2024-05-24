@@ -7,12 +7,18 @@ import Test from './actions/test';
 var d = document as DocumentExtended;
 d.savie = {};
 
+export enum Page {
+    Settings,
+    Incomes
+};
+
 export enum Status {
     Success,
     PartialSuccess,
     Failure,
     Missing
-}
+};
+
 export type ActionResult = {
     status: Status,
     message: string,
