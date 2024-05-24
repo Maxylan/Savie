@@ -30,8 +30,8 @@ const selectChoice = async (e: any) => {
                 break;
         }
         
-        const res: any = await browser.storage.local.set({ states: { pageSelected: selectedPage } });
-        console.log('curious - page, res', selectedPage, res);
+        // Store selected page..
+        await browser.storage.local.set({ states: { pageSelected: selectedPage } });
         
         // Toggle `selected` classes on the "absolute"-selector wrapper.
         absoluteSelector.classList.toggle(`${Choose.settings}-${selected}`);

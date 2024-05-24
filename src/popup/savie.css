@@ -183,7 +183,7 @@ button:disabled {
     cursor: copy;
 }
 
-form[name="income"] {
+form {
     border: none;
     border-radius: 0.5rem;
     background: #F9F9F9;
@@ -204,4 +204,36 @@ button#add-income {
     max-width: 2rem;
     font-size: 1.25rem;
     cursor: copy;
+}
+
+table {
+    width: 100%;
+}
+
+tr {
+    display: flex;
+    flex-direction: row;
+}
+
+td label {
+    margin: auto 0.25rem;
+    display: inline-block;
+    width: 1rem;
+}
+
+td.description {
+    flex-shrink: 0;
+    flex-grow: 1;
+}
+
+td.option {
+    align-content: center;
+    justify-content: flex-end;
+    flex-shrink: 1;
+}
+
+td input[type="number"] {
+    min-width: 4rem;
+    max-width: 6rem;
+    padding: 0.25rem;
 }
