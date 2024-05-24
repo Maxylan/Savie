@@ -9,12 +9,12 @@ if (!d.savie) {
     d.savie = {}
 }
 
-var browser: any = browser;
-
 // Ensure compatibility during testing..
+declare var browser: any;
 var compat: any = {}
-if (!browser) {
-    browser = { storage: { local: {
+
+if (typeof browser === 'undefined') {
+    var fallback: any = { storage: { local: {
         get: async (..._key: any[]): Promise<any> => {
             if (!_key || !_key[0]) { 
                 return compat;
@@ -30,6 +30,11 @@ if (!browser) {
         set: async (_kvp: any): Promise<any> => compat = {...compat, ..._kvp} 
         /* Object.keys(_kvp).forEach(_k => compat[_k] = _kvp[_k]); */
     }}}
+
+    // Ensure `browser` is defined without overwriting the real one
+    if (typeof browser === 'undefined') {
+        (window as any).browser = fallback;
+    }
 }
 
 const selected = 'selected';
