@@ -12,6 +12,9 @@ declare module '*.svg';
 // 
 type Savie = {
     keyDownEvent?: any,
+    onValuesChangeCallbacks?: ((id: string, value: string|number) => void)[],
+    onValuesChange?: (callback: ((id: string, value: string|number) => void)) => void,
+    valuesChange?: (id: string, value: string|number) => void,
 }
 
 type DocumentExtended = Document & {
@@ -32,7 +35,12 @@ declare type Income = {
     start?: string,
     end?: string,
 };
-declare type Settings = { };
+declare type Settings = {
+    buffer: number,
+    incomeDeviation: number,
+    upfrontCost: number,
+    annualGrowth: number
+};
 declare type States = {
     pageSelected: Page
 };

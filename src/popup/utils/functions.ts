@@ -1,6 +1,6 @@
 // @Maxylan
 import { d, Helement } from '../controller';
-import onIncomeInput from '../handlers/handleInput';
+import { onIncomeInput } from '../handlers/handleInput';
 import onIncomeSliderInput from '../handlers/handleSliderInput';
 import onIncomeChange from '../handlers/handleChange';
 

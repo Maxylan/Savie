@@ -1,6 +1,7 @@
 // @Maxylan
 import { Page } from '../index';
 import selectChoice, { selected, Choose } from './handlers/handleSelect';
+import { onSettingInputValue } from './handlers/handleInput';
 import {
     stringToHTML,
     spawnIncomeFromEvent,
@@ -62,7 +63,12 @@ document.addEventListener('DOMContentLoaded', async (_) => {
     }; 
     // Default `settings` if unset..
     if (!storage.settings) { 
-        storage.settings = {}
+        storage.settings = {
+            buffer: 30000,
+            incomeDeviation: 1000,
+            upfrontCost: 15,
+            annualGrowth: 8
+        }
     };
     // Default `states` if unset..
     if (!storage.states) { 
@@ -76,24 +82,36 @@ document.addEventListener('DOMContentLoaded', async (_) => {
     } 
 
     // Give one of the forms `.selected`
-    console.log('i get here');
     switch(storage.states.pageSelected) {
         case Page.Settings:
             settingsPage.classList.add(selected);
             d.querySelector('#'+Choose.settings)!.classList.add(selected);
             absoluteSelector.classList.add(`${Choose.settings}-${selected}`);
-            console.log('And Do i run');
             break;
         case Page.Incomes:
             incomePage.classList.add(selected);  
             d.querySelector('#'+Choose.income)!.classList.add(selected);
             absoluteSelector.classList.add(`${Choose.income}-${selected}`);
-            console.log('Do i run');
             break;
-    }    
+    }
 
     // Init: "Settings" page. \\
- 
+    const inputBufferSize: HTMLInputElement = d.querySelector('#set-buffer-size')!;
+    inputBufferSize.value = storage.settings.buffer;
+    inputBufferSize.addEventListener('input', onSettingInputValue);
+    
+    const inputDeviationAmount: HTMLInputElement = d.querySelector('#set-deviation-amount')!;
+    inputDeviationAmount.value = storage.settings.incomeDeviation;
+    inputDeviationAmount.addEventListener('input', onSettingInputValue);
+
+    const inputUpfrontCost: HTMLInputElement = d.querySelector('#set-upfront-cost')!;
+    inputUpfrontCost.value = storage.settings.upfrontCost;
+    inputUpfrontCost.addEventListener('input', onSettingInputValue);
+
+    const inputWageGrowth:  HTMLInputElement = d.querySelector('#set-yearly-wage-growth')!;
+    inputWageGrowth.value = storage.settings.annualGrowth;
+    inputWageGrowth.addEventListener('input', onSettingInputValue);
+
     // Init: "Incomes" page. \\
     // Spawn a 'single-income' per 'stored' income.
     storage.incomes.forEach((_: Income) => spawnIncome(incomeContainer, _));

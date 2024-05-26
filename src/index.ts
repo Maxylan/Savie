@@ -5,7 +5,18 @@ import Transform from './actions/transform';
 import Test from './actions/test';
 
 var d = document as DocumentExtended;
-d.savie = {};
+d.savie = {
+    onValuesChangeCallbacks: [],
+    onValuesChange: (callback: ((id: string, value: string|number) => void)) => {
+        if (!d.savie.onValuesChangeCallbacks) {
+            d.savie.onValuesChangeCallbacks ??= [];
+        }
+        
+        d.savie.onValuesChangeCallbacks.push(callback);
+    },
+    valuesChange: (id: string, value: string|number) => 
+        d.savie.onValuesChangeCallbacks!.forEach((_) => _(id, value)),
+};
 
 export enum Page {
     Settings,

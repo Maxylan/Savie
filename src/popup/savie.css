@@ -221,6 +221,11 @@ td label {
     width: 1rem;
 }
 
+td.setting-icon {
+    flex-shrink: 0;
+    flex-grow: 0;
+}
+
 td.description {
     flex-shrink: 0;
     flex-grow: 1;
