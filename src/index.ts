@@ -54,11 +54,11 @@ if (!d || !d.savie) {
                 return;
             }
 
-            await run(action(e.keyCode));
+            // await run(action(e.keyCode));
             
             // For logging..
-            // let result: ActionResult = await run(action(e.keyCode));
-            // console.debug('Savie: result -', result);
+            let result: ActionResult = await run(action(e.keyCode));
+            console.debug('Savie: result -', result);
         }
     };
 }
@@ -193,8 +193,8 @@ export const action = (keyCode: number): ActionResult => {
     };
 
     switch(keyCode) {
-        /* "o" */ case 79: ar.callback = Transform;
-        /* "p" */ case 80: ar.callback = Test;
+        /* "o" */ case 79: ar.callback = Transform; break;
+        /* "p" */ case 80: ar.callback = Test; break;
         default: return {
             status: Status.Missing,
             message: 'Nothing mapped to keyCode: ' + keyCode
