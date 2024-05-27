@@ -1,5 +1,6 @@
 // @Maxylan
-import { d, Helement } from '../controller';
+import { d } from '../../index';
+import { Helement } from '../../types';
 
 /**
  * 

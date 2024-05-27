@@ -1,6 +1,6 @@
 // @Maxylan
-import { Page } from '../../index';
-import { d, Helement } from '../controller';
+import { d } from '../../index';
+import { Page, Helement } from '../../types';
 
 export const selected = 'selected';
 export enum Choose {

@@ -1,5 +1,7 @@
 // @Maxylan
-import { Page } from '../index';
+// Injected with the Popup HTML, controlls menu interactivity and storage.
+// 
+import { d } from '../index';
 import selectChoice, { selected, Choose } from './handlers/handleSelect';
 import { onSettingInputValue } from './handlers/handleInput';
 import {
@@ -7,35 +9,17 @@ import {
     spawnIncomeFromEvent,
     spawnIncome,
 } from './utils/functions';
-
-export type Helement = Node & Element;
-export const d: DocumentExtended = document as DocumentExtended;
-
-var compat: any = {}
-// Ensure compatibility during testing..
-if (typeof browser === 'undefined') {
-    var fallback: any = { storage: { local: {
-        get: async (..._key: any[]): Promise<any> => {
-            if (!_key || !_key[0]) { 
-                return compat;
-            }
-
-            let store: any = {};
-            [..._key].forEach((_: any) => {
-                store[_] = compat[_]
-            });
-            
-            return Promise.resolve(store);
-        },
-        set: async (_kvp: any): Promise<any> => compat = {...compat, ..._kvp} 
-        /* Object.keys(_kvp).forEach(_k => compat[_k] = _kvp[_k]); */
-    }}}
-
-    // Ensure `browser` is defined without overwriting the real one
-    if (typeof browser === 'undefined') {
-        (window as any).browser = fallback;
-    }
-}
+import { 
+    Savie,
+    DocumentExtended,
+    ActionResult,
+    ActionResultCallback,
+    Status,
+    Page,
+    Income,
+    Settings,
+    Helement
+} from '../types';
 
 // Init / Start!
 document.addEventListener('DOMContentLoaded', async (_) => { 

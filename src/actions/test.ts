@@ -1,10 +1,12 @@
 // @Maxylan
 import { 
-    Status, ActionResult 
-} from '../index';
+    Status, 
+    ActionResult, 
+    ExtStorage
+} from '../types';
 
 export default async function Test(): Promise<ActionResult> {    
-    const storage: Storage = await browser.storage.local.get();
+    const storage: ExtStorage = await browser.storage.local.get();
 
     return {
         status: Status.Success,

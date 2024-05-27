@@ -1,5 +1,6 @@
 // @Maxylan
-import { d, Helement } from '../controller';
+import { d } from '../../index';
+import { ExtStorage, Helement  } from '../../types';
 
 /**
  * 
@@ -25,8 +26,12 @@ export const onIncomeInput = (e: any) => {
  * 
  */
 export const onSettingInputValue = async (e: any) => {
-    const storage: Storage = await browser.storage.local.get('settings');
+    const storage: ExtStorage = await browser.storage.local.get('settings');
     let updateStorage: boolean = false;
+    
+    if (!storage.settings) {
+        return;
+    }
     
     if (isNaN(e.target.value)) {
         return;
@@ -53,7 +58,8 @@ export const onSettingInputValue = async (e: any) => {
     }
 
     if (updateStorage) {
-        console.log('storage', storage)
+        console.debug('storage', storage)
+        d.savie.valueChange(e.target.id, e.target.value);
         await browser.storage.local.set(storage);
     }
 }

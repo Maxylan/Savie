@@ -1,8 +1,33 @@
 // @Maxylan
-import { d, Helement } from '../controller';
+import { d } from '../../index';
 import { onIncomeInput } from '../handlers/handleInput';
 import onIncomeSliderInput from '../handlers/handleSliderInput';
 import onIncomeChange from '../handlers/handleChange';
+import {
+    Savie,
+    DocumentExtended,
+    ExtStorage,
+    Income,
+    Settings,
+    States,
+    Helement 
+} from '../../types';
+
+/**
+ * Returns a version of `func` that's "debounced"
+ */
+export const debounce = <TFunction extends Function>(func: TFunction, wait: number = 400): TFunction => {
+	var timeout: any;
+	return (
+        function() {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                // @ts-ignore
+                func.apply(this, arguments);
+            }, wait);
+        } 
+    ) as Function as TFunction;
+}
 
 /**
  * Create an HTML Element / Node (`Helement`) from a string-representation.
