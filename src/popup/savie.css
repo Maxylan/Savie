@@ -215,10 +215,14 @@ tr {
     flex-direction: row;
 }
 
+td {
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
 td label {
     margin: auto 0.25rem;
     display: inline-block;
-    width: 1rem;
 }
 
 td.setting-icon {
@@ -235,6 +239,10 @@ td.option {
     align-content: center;
     justify-content: flex-end;
     flex-shrink: 1;
+}
+
+td.option label { 
+    width: 1rem;
 }
 
 td input[type="number"] {
