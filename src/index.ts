@@ -4,20 +4,6 @@
 import Transform from './actions/transform';
 import Test from './actions/test';
 
-var d = document as DocumentExtended;
-d.savie = {
-    onValuesChangeCallbacks: [],
-    onValuesChange: (callback: ((id: string, value: string|number) => void)) => {
-        if (!d.savie.onValuesChangeCallbacks) {
-            d.savie.onValuesChangeCallbacks ??= [];
-        }
-        
-        d.savie.onValuesChangeCallbacks.push(callback);
-    },
-    valuesChange: (id: string, value: string|number) => 
-        d.savie.onValuesChangeCallbacks!.forEach((_) => _(id, value)),
-};
-
 export enum Page {
     Settings,
     Incomes
@@ -69,7 +55,7 @@ let Border: {
 } = {};
 
 /**
- * Helper to set the boreder, and restore it 
+ * Helper to set the border, and restore it 
  * after `timeout` microseconds.
  *
  * A spin on Mozilla's "Getting Started" guide for extensions!
@@ -81,23 +67,23 @@ export const setBorder = (style: string, timeout: number = 3000) => {
     if (Border.timeout) {
         clearTimeout(Border.timeout);
     }
-    if (Border.current && document.body.style.border === Border.current) {
-        document.body.style.border = Border.original!;
+    if (Border.current && d.body.style.border === Border.current) {
+        d.body.style.border = Border.original!;
     }
 
     // Save border details..
     Border = {
         // In the unlikely event a border exists, save it.
-        original: document.body.style.border
+        original: d.body.style.border
     }
 
-    document.body.style.border = style;
+    d.body.style.border = style;
     Border.current = style;
 
     // Restore the old body after `timeout` microseconds.
     Border.timeout = setTimeout(
         () => {
-            document.body.style.border = Border.original!;
+            d.body.style.border = Border.original!;
             Border = {};
         }, timeout
     );
@@ -116,13 +102,14 @@ export const missing = (keyCode: number, status?: string) => {
  */
 export const partialSuccess = (status?: string, result?: ActionResult) => {
     setBorder("4px solid burlywood", 900);
-    console.log('%cSavie: ' + (status || 'Partial Success!'), 'color: burlywood; font-size: 12px;');
+    let partialSuccessStyle = 'color: burlywood; font-size: 12px;';
+    console.debug('%cSavie: ' + (status || 'Partial Success!'), partialSuccessStyle, result);
     
     if (result?.callback || result?.callbackCount) {
-        console.debug('%cCallback: ' + result.callbackCount, 'color: burlywood; font-size: 12px;', result.callback);
+        console.debug('%cCallback: ' + result.callbackCount, partialSuccessStyle, result.callback);
     }
     if (result?.data) {
-        console.debug('Data: ', result.data);
+        console.debug('%cData: ', partialSuccessStyle, result.data);
     }
 }
 
@@ -131,13 +118,14 @@ export const partialSuccess = (status?: string, result?: ActionResult) => {
  */
 export const success = (status?: string, result?: ActionResult) => {
     setBorder("4px solid lightgreen", 900);
-    console.log('%cSavie: ' + (status || 'Success!'), 'color: lightgreen; font-size: 12px;');
+    let successStyle = 'color: lightgreen; font-size: 12px;';
+    console.debug('%cSavie: ' + (status || 'Success!'), successStyle);
     
     if (result?.callback || result?.callbackCount) {
-        console.debug('%cCallback: ' + result.callbackCount, 'color: lightgreen; font-size: 12px;', result.callback);
+        console.debug('%cCallback: ' + result.callbackCount, successStyle, result.callback);
     }
     if (result?.data) {
-        console.debug('Data: ', result.data);
+        console.debug('%cData: ', successStyle, result.data);
     }
 }
 
@@ -146,69 +134,79 @@ export const success = (status?: string, result?: ActionResult) => {
  */
 export const fail = (ex: any, result?: ActionResult) => {
     setBorder("5px solid red"); // 3s, default timeout.
-    console.error('Savie Error: ', ex);
+    console.error('Savie Error: ', ex, result);
     
     if (result?.callback || result?.callbackCount) {
         console.error('On Callback #' + result.callbackCount, result.callback);
     }
-    if (result?.data) {
-        console.debug('Data: ', result.data);
-    }
 }
 
-// Todo, improve this
-const init = async (e: any) => {
-    if (!e.altKey || 
-        e.keyCode === 18 || 
-        e.isComposing || 
-        e.keyCode === 229
-    ) {
-        return;
-    }
+// Declare `d` (`DocumentExtended`) and define savie's members.
+var d = document as DocumentExtended;
+d.savie = {
+    init: false,
+    onValuesChangeCallbacks: [ Transform ],
+    onValuesChange: (callback: ((id: string, value: string|number) => void)) => {
+        if (!d.savie.onValuesChangeCallbacks) {
+            d.savie.onValuesChangeCallbacks ??= [];
+        }
+        
+        d.savie.onValuesChangeCallbacks.push(callback);
+    },
+    valuesChange: (id: string, value: string|number) => 
+        d.savie.onValuesChangeCallbacks!.forEach((_) => _(id, value)),
+    keyDownEvent: async (e: any) => {
+        if (!e.altKey || 
+            e.keyCode === 18 || 
+            e.isComposing || 
+            e.keyCode === 229
+        ) {
+            return;
+        }
 
-    let result: ActionResult = await action(e.keyCode);
-    
-    if (result.callback) {
-        result.callbackCount = 0;
-    }
+        let result: ActionResult = await action(e.keyCode);
+        
+        if (result.callback) {
+            result.callbackCount = 0;
+        }
 
-    // Continue executing returned callbacks, if any..
-    while (result.callback) {
-        (result.callbackCount!)++;
-        result = await result.callback(result);
+        // Continue executing returned callbacks, if any..
+        while (result.callback) {
+            (result.callbackCount!)++;
+            result = await result.callback(result);
 
-        if (result.callbackCount! > 16) { 
-            if (!result.data) {
-                result.data = {}
+            if (result.callbackCount! > 16) { 
+                if (!result.data) {
+                    result.data = {}
+                }
+                result.data.interrupted = true;
+                result.message = 'Interrupted - ' + result.message;
+                break;
             }
-            result.data.interrupted = true;
-            result.message = 'Interrupted - ' + result.message;
-            break;
+        }
+
+        switch(result.status) {
+            case Status.Success:
+                success(result.message, result);
+                break;
+            case Status.PartialSuccess:
+                partialSuccess(result.message, result);
+                break;
+            case Status.Failure:
+                fail(result, result);
+                break;
+            default: // Status.Missing
+                missing(e.keyCode, result.message);
+                break;
         }
     }
-
-    switch(result.status) {
-        case Status.Success:
-            success(result.message, result);
-            break;
-        case Status.PartialSuccess:
-            partialSuccess(result.message, result);
-            break;
-        case Status.Failure:
-            fail(result, result);
-            break;
-        default: // Status.Missing
-            missing(e.keyCode, result.message);
-            break;
-    }
-}
+};
 
 // Init..
-if (!d.savie.keyDownEvent) {
-    d.savie.keyDownEvent = init;
-    document.body.addEventListener(
+if (!d.savie.init) 
+{
+    d.savie.init = true;
+    d.body.addEventListener(
         'keydown', d.savie.keyDownEvent
     );
-
-    console.debug('%cSavie Loaded', 'color: lightgrey; font-size: 8px;');
 }

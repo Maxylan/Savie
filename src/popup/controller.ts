@@ -10,9 +10,6 @@ import {
 
 export type Helement = Node & Element;
 export const d: DocumentExtended = document as DocumentExtended;
-if (!d.savie) {
-   d.savie = {};
-}
 
 var compat: any = {}
 // Ensure compatibility during testing..
@@ -48,7 +45,6 @@ document.addEventListener('DOMContentLoaded', async (_) => {
     const absoluteSelector: Helement = d.querySelector('#absolute-selector')!;
     
     const storage: any = await browser.storage.local.get();
-    console.log('load, get: ', storage);
     
     // (Flag if `.set` should be called to set initial states.)
     const performInitialUpdate: boolean = 

@@ -11,10 +11,11 @@ declare module '*.svg';
 // Misc. global declarations..
 // 
 type Savie = {
-    keyDownEvent?: any,
-    onValuesChangeCallbacks?: ((id: string, value: string|number) => void)[],
-    onValuesChange?: (callback: ((id: string, value: string|number) => void)) => void,
-    valuesChange?: (id: string, value: string|number) => void,
+    init: boolean,
+    keyDownEvent: any,
+    onValuesChangeCallbacks: ((id: string, value: string|number) => void)[],
+    onValuesChange: (callback: ((id: string, value: string|number) => void)) => void,
+    valuesChange: (id: string, value: string|number) => void,
 }
 
 type DocumentExtended = Document & {

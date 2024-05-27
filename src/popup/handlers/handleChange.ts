@@ -5,7 +5,6 @@
 const onIncomeChange = async (e: any, income_id: number) => {
     let storage: ExtStorage = await browser.storage.local.get('incomes');
     let incomeIndex: number = storage.incomes!.findIndex((_:any) => _.id === income_id);
-    console.log('change - e, income_id', e, income_id, storage);
 
     if (incomeIndex !== -1) { 
         switch(e.target.type) {
