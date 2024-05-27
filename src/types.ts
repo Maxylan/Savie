@@ -14,10 +14,10 @@ export enum Status {
     Missing
 };
 
-export type ActionResult = {
+export type ActionResult<T = any> = {
     status: Status,
     message: string,
-    data?: any,
+    data?: T,
     callback?: ActionResultCallback,
     callbackCount?: number
 };
@@ -27,6 +27,10 @@ export type ActionResultCallback =
 
 export type Savie = {
     init: boolean,
+    debug: boolean,
+    observer?: MutationObserver,
+    observerConfig: MutationObserverInit,
+    observerLifespan: number,
     keyDownEvent: any,
     valueChangeCallbacks: ActionResult[],
     onValueChange: (...callbacks: ActionResultCallback[]) => void,

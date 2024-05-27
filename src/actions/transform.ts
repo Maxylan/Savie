@@ -1,4 +1,8 @@
 // @Maxylan
+// Transforms "prices" on the webpage to interactive dates.
+//
+import { d } from '../index';
+import { debounce } from '../popup/utils/functions';
 import { 
     Status, 
     ActionResult,
@@ -9,9 +13,14 @@ import {
 /**
  * XPath used to find "numbers" (prices) on the website.
  */
-export const xpath = "//*[normalize-space() != '' and translate(normalize-space(), '0123456789sekr:- ', '') = '']"
+export const xpath = "//*[normalize-space() != '' and translate(normalize-space(), '0123456789SsEeKkRr:- ', '') = '']"
 
-export default async function Transform(): Promise<ActionResult> {
+export type TransformResult = {
+    observer: MutationObserver,
+    nodes: Node[]
+}
+
+export default async function Transform(): Promise<ActionResult<TransformResult>> {
 
     const storage: ExtStorage = await browser.storage.local.get(['incomes', 'settings']);
     const nodes: Node[] = [], nodesIterator = document.evaluate(
@@ -34,12 +43,30 @@ export default async function Transform(): Promise<ActionResult> {
     }
 
     nodes.forEach(_ => (_ as Helement).innerHTML += '🥴');
-    console.debug(nodes);
+    // console.debug(nodes);
+
+    if (!d.savie.observer) {
+        d.savie.observer = new MutationObserver(debounce(Transform));
+        d.savie.observer.observe(d.querySelector('body')!, d.savie.observerConfig);
+        
+        // Do some cleanup, so I don't leave an observer running in the users
+        // browser for an eternity...
+        setTimeout(
+            () => {
+                if (d.savie.observer) {
+                    d.savie.observer.disconnect();
+                    delete d.savie.observer;
+                }
+            }, d.savie.observerLifespan
+        );
+    }
 
     return {
         status: Status.Success,
-        message: 'Hello, Savie!',
-        data: storage,
-        // callback?: (prev) => ActionResult
+        message: '',
+        data: {
+            observer: d.savie.observer,
+            nodes: nodes
+        }
     };
 }

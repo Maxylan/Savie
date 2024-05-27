@@ -14,6 +14,11 @@ import {
 } from '../../types';
 
 /**
+ * Multiplies the given number (microsecodns) with 1000.
+ */
+export const s = (microseconds: number = 1): number => microseconds * 1000
+
+/**
  * Returns a version of `func` that's "debounced"
  */
 export const debounce = <TFunction extends Function>(func: TFunction, wait: number = 400): TFunction => {
@@ -24,6 +29,7 @@ export const debounce = <TFunction extends Function>(func: TFunction, wait: numb
             timeout = setTimeout(() => {
                 // @ts-ignore
                 func.apply(this, arguments);
+                // @ts-restore
             }, wait);
         } 
     ) as Function as TFunction;

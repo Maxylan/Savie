@@ -2,8 +2,8 @@
 // By @Maxylan
 //
 import Transform from './actions/transform';
-import Test from './actions/test';
-import { debounce } from './popup/utils/functions';
+import ClearObserver from './actions/clearObserver';
+import { debounce, s } from './popup/utils/functions';
 import {
     Savie,
     DocumentExtended,
@@ -21,7 +21,13 @@ export var d = document as DocumentExtended;
 if (!d || !d.savie) {
     d.savie = {
         init: false,
+        debug: true,
         valueChangeCallbacks: [],
+        observerConfig: {
+            childList: true,
+            subtree: true
+        },
+        observerLifespan: s(300),
         onValueChange: (...callbacks: ActionResultCallback[]) => {
             if (!d.savie.valueChangeCallbacks) {
                 d.savie.valueChangeCallbacks ??= [];
@@ -134,24 +140,35 @@ export const setBorder = (style: string, timeout: number = 3000) => {
 /**
  * Fires when an action or key can't be found.
  */
-export const missing = (status: string, keyCode?: number) => {
-    setBorder("3px solid yellow", 200);
-    console.debug('%c' + (status || 'Action/keyCode not found.') + ': ', 'color: lightgrey; font-size: 10px;', status, keyCode);
+export const missing = (status?: string, keyCode?: number) => {
+    if (d.savie.debug) {
+        setBorder("3px solid yellow", 200);
+        console.debug(
+            '%c'+(status || 'Action/keyCode not found.')+': ', 
+            'color: lightgrey; font-size: 10px;', 
+            status, 
+            keyCode
+        ); 
+    }
 }
 
 /**
  * Handles visualizing "partial" success:es
  */
 export const partialSuccess = (status?: string, result?: ActionResult) => {
-    setBorder("4px solid burlywood", 900);
+    
     let partialSuccessStyle = 'color: burlywood; font-size: 10px;';
     console.debug('%cSavie: ' + (status || 'Partial Success!'), partialSuccessStyle, result);
-    
-    if (result?.callback || result?.callbackCount) {
-        console.debug('%cCallback: ' + result.callbackCount, partialSuccessStyle, result.callback);
-    }
-    if (result?.data) {
-        console.debug('%cData: ', partialSuccessStyle, result.data);
+
+    if (d.savie.debug) {
+        setBorder("4px solid burlywood", 900);
+        
+        if (result?.callback || result?.callbackCount) {
+            console.debug('%cCallback: ' + result.callbackCount, partialSuccessStyle, result.callback);
+        }
+        if (result?.data) {
+            console.debug('%cData: ', partialSuccessStyle, result.data);
+        }
     }
 }
 
@@ -159,15 +176,19 @@ export const partialSuccess = (status?: string, result?: ActionResult) => {
  * Handles visualizing a completely successfull run!
  */
 export const success = (status?: string, result?: ActionResult) => {
-    setBorder("4px solid lightgreen", 900);
+    
     let successStyle = 'color: lightgreen; font-size: 10px;';
     console.debug('%cSavie: ' + (status || 'Success!'), successStyle);
     
-    if (result?.callback || result?.callbackCount) {
-        console.debug('%cCallback: ' + result.callbackCount, successStyle, result.callback);
-    }
-    if (result?.data) {
-        console.debug('%cData: ', successStyle, result.data);
+    if (d.savie.debug) {
+        setBorder("4px solid lightgreen", 900);
+        
+        if (result?.callback || result?.callbackCount) {
+            console.debug('%cCallback: ' + result.callbackCount, successStyle, result.callback);
+        }
+        if (result?.data) {
+            console.debug('%cData: ', successStyle, result.data);
+        }
     }
 }
 
@@ -178,8 +199,12 @@ export const fail = (ex: any, result?: ActionResult) => {
     setBorder("5px solid red"); // 3s, default timeout.
     console.error('Savie Error: ', ex, result);
     
-    if (result?.callback || result?.callbackCount) {
-        console.error('On Callback #' + result.callbackCount, result.callback);
+    if (d.savie.debug) {
+        if (result?.callback || result?.callbackCount) {
+            console.error('On Callback #' + result.callbackCount, result.callback);
+        }
+
+        //...
     }
 }
 
@@ -193,8 +218,8 @@ export const action = (keyCode: number): ActionResult => {
     };
 
     switch(keyCode) {
-        /* "o" */ case 79: ar.callback = Transform; break;
-        /* "p" */ case 80: ar.callback = Test; break;
+        /* "o" */ case 79: ar.callback = Transform; break; // Transform prices..
+        /* "p" */ case 80: ar.callback = ClearObserver; break; // Clear eventual observers..
         default: return {
             status: Status.Missing,
             message: 'Nothing mapped to keyCode: ' + keyCode
