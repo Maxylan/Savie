@@ -7,6 +7,9 @@ await esbuild.build({
     platform: 'browser',
     format: 'iife', // "Immideatly Invoked Function Expression"
     packages: 'external',
+    external: [ 
+        'external:@js-temporal/polyfill'
+    ],
     target: [
         'es2020',
         'chrome58',

@@ -7,5 +7,8 @@
 	"scripts": {
 		"build": "tsc -noEmit && node build.mjs && cp -pvr src/icons dist/icons",
 		"start": "node dist/savie.js"
+	},
+	"dependencies": {
+		"@js-temporal/polyfill": "^0.4.4"
 	}
 }

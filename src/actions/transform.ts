@@ -2,12 +2,15 @@
 // Transforms "prices" on the webpage to interactive dates.
 //
 import { d } from '../index';
+import { Temporal } from '@js-temporal/polyfill'
 import { debounce } from '../popup/utils/functions';
 import { 
     Status, 
     ActionResult,
     ExtStorage,
-    Helement
+    Helement,
+    Settings,
+    Income
 } from '../types';
 
 /**
@@ -34,7 +37,7 @@ export default async function Transform(): Promise<ActionResult<TransformResult>
     while(true) {
         let node = nodesIterator.iterateNext();
         if (node) {
-            let content: string = node.textContent ?? ''.replace(/[\ SsEeKkRr\:\-]/, '');
+            let content: string = (node.textContent ?? '').replace(/[\ SsEeKkRr\:\-]/, '');
             if (content && content.length > 6 && !isNaN(parseInt(content))) {
                 nodes.push(node); 
             }
@@ -70,3 +73,122 @@ export default async function Transform(): Promise<ActionResult<TransformResult>
         }
     };
 }
+
+export type TTA = {
+    now: Temporal.ZonedDateTime,
+    tz: Temporal.TimeZoneProtocol,
+    date: Temporal.ZonedDateTime,
+    duration: Temporal.Duration,
+    info: { 
+        sum: number,
+        goal: number,
+        buffer: number,
+        iterations: number,
+        wageIncreases: number
+    }
+}
+/**
+ *
+ */
+export const calculateTTA = (goal: number, settings: Settings, incomes: Income[]): TTA => {
+
+    const now = Temporal.Now.zonedDateTimeISO();
+    const tz = now.getTimeZone();
+
+    let pointer = now;
+    let wageIncreases = 0,
+        wageIncrease = () => 1 + wageIncreases * (settings.annualGrowth / 100);
+    let actualGoal = goal + settings.buffer;
+    let sum = 0;
+
+    let iterations = 0;
+    while(true) {
+        if (pointer.day === 25 || pointer.day > 25) {
+            pointer = Temporal.ZonedDateTime.from(pointer).with({
+                month: pointer.month + 1,
+                day: 25
+            });
+        }
+        else {
+            pointer = Temporal.ZonedDateTime.from(pointer).with({ day: 25 });
+        }
+
+        // Increse wages each April..
+        if (pointer.month === 4) {
+            ++wageIncreases;
+        }
+
+        sum += wageIncrease() * incomes.reduce<number>((acc, cur) => {
+            if (cur.start) {
+                if (Temporal.ZonedDateTime.compare(pointer, cur.start) === -1) {
+                    return acc;
+                }
+                /* const start = Temporal.ZonedDateTime
+                    .from(cur.start)
+                    .with({ timeZone: tz });
+
+                if (pointer.epochSeconds < start.epochSeconds) {
+                    return acc;
+                } */
+            }
+            if (cur.end) {
+                if (Temporal.ZonedDateTime.compare(pointer, cur.end) === 1) {
+                    return acc;
+                }
+                /* const end = Temporal.ZonedDateTime
+                    .from(cur.end)
+                    .with({ timeZone: tz });
+
+                if (pointer.epochSeconds > end.epochSeconds) {
+                    return acc;
+                } */
+            }
+            
+            return acc + cur.value;
+        }, 0);
+
+        if (sum >= actualGoal || ++iterations > 999) { break; }
+    }
+
+    return {
+        now: now,
+        tz: tz,
+        date: pointer,
+        duration: now.until(pointer),
+        info: { 
+            sum: sum,
+            goal: goal,
+            buffer: settings.buffer,
+            iterations: iterations,
+            wageIncreases: wageIncreases
+        }
+    };
+}
+
+/**
+ * Assuming `node` is an element with a numeric `innerHTML`..
+ * Transforms the given HTML Element / Node to a hover, with
+ * details about when the user will have saved up to the number.
+ */
+export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promise<void> => {
+    if (!storage) {
+        storage = await browser.storage.local.get(['incomes', 'settings']);
+    }
+    if (!storage || !storage.settings || !storage.incomes) {
+        console.warn('TransformHTML - Failed to get `storage`', storage, node);
+        return;
+    }
+
+    let content: string = (node.textContent ?? '').replace(/[\ SsEeKkRr\:\-]/, '');
+    let price: number = parseInt(content);
+    if (!price || isNaN(price)) {
+        console.warn('TransformHTML - Skipped Node with falsy/NaN text content:', node);
+        return;
+    }
+    
+    const tta = calculateTTA(price, storage.settings, storage.incomes);
+    console.debug('tta', `${content} - ${tta.date.toLocaleString()}`, tta);
+
+    node.textContent = `${content} - ${tta.date.toLocaleString()}`; 
+}
+
