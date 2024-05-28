@@ -250,3 +250,8 @@ td input[type="number"] {
     max-width: 6rem;
     padding: 0.25rem;
 }
+
+span.old-content-backup {
+    display: none;
+}
+

@@ -29,6 +29,7 @@ export type Savie = {
     init: boolean,
     debug: boolean,
     observer?: MutationObserver,
+    observerShutdownTimer?: number,
     observerConfig: MutationObserverInit,
     observerLifespan: number,
     keyDownEvent: any,

@@ -9,9 +9,12 @@ import {
 } from '../types';
 
 export default async function ClearObserver(): Promise<ActionResult> {    
-    const observerExisted = !!d.savie.observer;
+    const observerExisted = !!(d.savie.observer || d.savie.observerShutdownTimer);
     
     if (observerExisted) {
+        clearTimeout(d.savie.observerShutdownTimer);
+        delete d.savie.observerShutdownTimer;
+
         d.savie.observer!.disconnect();
         delete d.savie.observer;
     }

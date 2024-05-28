@@ -60,11 +60,11 @@ if (!d || !d.savie) {
                 return;
             }
 
-            // await run(action(e.keyCode));
+            await run(action(e.keyCode));
             
             // For logging..
-            let result: ActionResult = await run(action(e.keyCode));
-            console.debug('Savie: result -', result);
+            // let result: ActionResult = await run(action(e.keyCode));
+            // console.debug('Savie: result -', result);
         }
     };
 }
@@ -241,8 +241,9 @@ export const run = async (action: ActionResult): Promise<ActionResult> => {
         };
     }
 
+    let result: ActionResult = action;
     try {
-        let result: ActionResult = await action.callback(action);
+        result = await action.callback(action);
         
         if (result.callback) {
             result.callbackCount = 1;
@@ -262,7 +263,19 @@ export const run = async (action: ActionResult): Promise<ActionResult> => {
                 break;
             }
         }
-
+    }
+    catch(ex: any) {
+        result = {
+            status: Status.Failure,
+            message: ex.message || JSON.stringify(ex),
+            data: {
+                error: ex,
+                lastCallback: result.callback,
+                callbackCount: result.callbackCount,
+            }
+        }
+    }
+    finally { 
         switch(result.status) {
             case Status.Success:
                 success(result.message, result);
@@ -281,16 +294,9 @@ export const run = async (action: ActionResult): Promise<ActionResult> => {
                 missing(result.message);
                 break;
         }
+    }
 
-        return result;
-    }
-    catch(ex: any) {
-        return {
-            status: Status.Failure,
-            message: ex.message || JSON.stringify(ex),
-            data: ex
-        }
-    }
+    return result;
 }
 
 // Init!

@@ -16,7 +16,25 @@ import {
 /**
  * XPath used to find "numbers" (prices) on the website.
  */
-export const xpath = "//*[normalize-space() != '' and translate(normalize-space(), '0123456789SsEeKkRr:- ', '') = '']"
+export const xpath = "//*[" + (
+    // [0123456789SsEeKkRr:- ]
+    '0123456789'.split('').map(_ => `contains(text(), '${_}')`).join(' or ')
+) +"]"
+/**
+ * Regex pattern used to filter the textContent of nodes 
+ * containing found by the `xpath` to contain numbers.
+ */
+export const pattern = /[0-9SsEeKkRr\ \:\-]{9,}/g
+/**
+ * Regex pattern used to filter the textContent of nodes 
+ * containing found by the `xpath` to contain numbers.
+ */
+export const overrideNode = '<span class="overridden-price">$&</span>'
+/**
+ * Regex pattern used to filter the textContent of nodes 
+ * containing found by the `xpath` to contain numbers.
+ */
+export const backupNode = '<span class="old-content-backup">$&</span>'
 
 export type TransformResult = {
     observer: MutationObserver,
@@ -30,39 +48,50 @@ export default async function Transform(): Promise<ActionResult<TransformResult>
         xpath, 
         document, 
         undefined, 
-        XPathResult.UNORDERED_NODE_ITERATOR_TYPE
+        XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE
     );
 
     let i = 0;
     while(true) {
-        let node = nodesIterator.iterateNext();
-        if (node) {
-            let content: string = (node.textContent ?? '').replace(/[\ SsEeKkRr\:\-]/, '');
-            if (content && content.length > 6 && !isNaN(parseInt(content))) {
-                nodes.push(node); 
+        let node = nodesIterator.snapshotItem(i) as Helement;
+        if (node && node.textContent && pattern.test(node.textContent)) {
+            let newContent: string = node.textContent.replace(pattern, overrideNode);
+            let oldContent: string = backupNode.replace('$&', node.innerHTML!);
+            
+            if (newContent) {
+                node.innerHTML = newContent + oldContent;
+                nodes.push(node);
             }
         }
         if (!node || ++i > 99999) { break; }
     }
 
-    nodes.forEach(_ => (_ as Helement).innerHTML += '🥴');
-    // console.debug(nodes);
+    // Transform each node's HTML Content with the calculated TTA (Time-To-Afford)
+    nodes.forEach(_ => TransformHTML(_ as Helement, storage));
+    console.log('nodes', nodes);
 
-    if (!d.savie.observer) {
-        d.savie.observer = new MutationObserver(debounce(Transform));
-        d.savie.observer.observe(d.querySelector('body')!, d.savie.observerConfig);
+    if (d.savie.observer) {
+        clearTimeout(d.savie.observerShutdownTimer);
+        delete d.savie.observerShutdownTimer;
         
-        // Do some cleanup, so I don't leave an observer running in the users
-        // browser for an eternity...
-        setTimeout(
-            () => {
-                if (d.savie.observer) {
-                    d.savie.observer.disconnect();
-                    delete d.savie.observer;
-                }
-            }, d.savie.observerLifespan
-        );
+        d.savie.observer.disconnect();
+        delete d.savie.observer;
     }
+    
+    d.savie.observer = new MutationObserver(debounce(Transform));
+    d.savie.observer.observe(d.querySelector('body')!, d.savie.observerConfig);
+    
+    // Do some cleanup, so I don't leave an observer running in the users
+    // browser for an eternity...
+    setTimeout(
+        () => {
+            if (d.savie.observer) {
+                d.savie.observer.disconnect();
+                delete d.savie.observer;
+            }
+        }, d.savie.observerLifespan
+    );
+    
 
     return {
         status: Status.Success,
@@ -103,7 +132,14 @@ export const calculateTTA = (goal: number, settings: Settings, incomes: Income[]
 
     let iterations = 0;
     while(true) {
-        if (pointer.day === 25 || pointer.day > 25) {
+        if (pointer.month === 12 && pointer.day >= 25) {
+            pointer = Temporal.ZonedDateTime.from(pointer).with({
+                year: pointer.year + 1,
+                month: 1,
+                day: 25
+            });
+        }
+        else if (pointer.day === 25 || pointer.day > 25) {
             pointer = Temporal.ZonedDateTime.from(pointer).with({
                 month: pointer.month + 1,
                 day: 25
@@ -179,16 +215,21 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
         return;
     }
 
-    let content: string = (node.textContent ?? '').replace(/[\ SsEeKkRr\:\-]/, '');
-    let price: number = parseInt(content);
+    const overriddenNode: Helement = node.querySelector('.overridden-price') ?? node;
+    if (!overriddenNode || !overriddenNode.textContent) {
+        throw new Error('TransformHTML - `node` or its `.textContent` is falsy/undefined: ' + (typeof node));
+    }
+
+    let numContent: string = overriddenNode.textContent.replace(/[\ SsEeKkRr\:\-]/g, '');
+    let price: number = parseInt(numContent);
     if (!price || isNaN(price)) {
         console.warn('TransformHTML - Skipped Node with falsy/NaN text content:', node);
         return;
     }
     
     const tta = calculateTTA(price, storage.settings, storage.incomes);
-    console.debug('tta', `${content} - ${tta.date.toLocaleString()}`, tta);
+    console.debug('tta', `${numContent} - ${tta.date.toLocaleString()}`, tta);
 
-    node.textContent = `${content} - ${tta.date.toLocaleString()}`; 
+    node.textContent = `${numContent} - ${tta.date.toLocaleString()}`; 
 }
 
