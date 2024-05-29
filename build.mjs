@@ -13,8 +13,9 @@ await esbuild.build({
     minify: false, // Change for prod.
     bundle: true,
     entryPoints: [
-        'src/index.ts', 
-        'src/manifest.json', 
+        'src/index.ts',
+	'src/index.css',
+        'src/manifest.json',
         'src/popup/controller.ts',
         'src/popup/savie.html',
         'src/popup/savie.css'

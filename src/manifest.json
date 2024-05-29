@@ -32,6 +32,7 @@
     "content_scripts": [
         {
             "matches": ["*://*/*"],
+            "css": ["index.css"],
             "js": ["index.js"]
         }
     ],
