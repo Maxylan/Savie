@@ -165,6 +165,7 @@ export interface IncomeDatapoint {
     }
 }
 export interface IncomeData {
+    sum: number,
     date: Temporal.ZonedDateTime,
     data: IncomeDatapoint[]
 }
@@ -197,19 +198,23 @@ export type TTA = {
  */
 export const calculateTTA = (goal: number, settings: Settings, incomes: Income[]): TTA => {
 
-    const wageIncrease = () => 1 + incomeGraph.wageIncreases * (settings.annualGrowth / 100);
-    const now = Temporal.Now.zonedDateTimeISO();
-    const tz = now.getTimeZone();
-
+    const wageIncrease = () => 1 + tta.incomeGraph.wageIncreases * (settings.annualGrowth / 100);
+    let now = Temporal.Now.zonedDateTimeISO();
     let pointer = now;
-    let actualGoal = goal + settings.buffer;
-    
-    let incomeGraph: IncomeDataGraph = {
-        graph: [],
-        wageIncreases: 0,
-        iterations: 0,
-        total: 0
-    }
+    let tta = {
+        goal: goal,
+        actualGoal: goal + settings.buffer,
+        now: now ,
+        tz: now.getTimeZone(),
+        date: now,
+        duration: Temporal.Duration.from({ seconds: 0 }),
+        incomeGraph: {
+            graph: [],
+            wageIncreases: 0,
+            iterations: 0,
+            total: 0
+        } as IncomeDataGraph
+    };
 
     while(true) {
         if (pointer.month === 12 && pointer.day >= 25) {
@@ -231,10 +236,11 @@ export const calculateTTA = (goal: number, settings: Settings, incomes: Income[]
 
         // Increse wages each April..
         if (pointer.month === 4) {
-            ++incomeGraph.wageIncreases;
+            ++tta.incomeGraph.wageIncreases;
         }
 
-        incomeGraph.graph.push({
+        let iterationData: IncomeData = {
+            sum: 0,
             date: structuredClone(pointer),
             data: incomes.map<IncomeDatapoint>((inc: Income): IncomeDatapoint => {
                 // Compare income `start`/`end` dates (if any) against current `pointer`
@@ -258,35 +264,18 @@ export const calculateTTA = (goal: number, settings: Settings, incomes: Income[]
                     }
                 };
             })
-        });
+        };
 
-        incomeGraph.total += incomeGraph.graph.reduce<number>((acc, cur) => {
-            // Compare income `start`/`end` dates (if any) against current `pointer`
-            if ((cur.start && Temporal.PlainDateTime.compare(pointer, cur.start) === -1) ||
-                (cur.end && Temporal.PlainDateTime.compare(pointer, cur.end) === 1)
-            ) {
-                return acc;
-            }
-            
-            return acc + cur.value;
-        }, 0);
+        iterationData.sum = iterationData.data.reduce<number>((acc, cur) => acc + cur.value, 0);
+        tta.incomeGraph.total += iterationData.sum;
+        tta.incomeGraph.graph.push(iterationData);
 
-        if (sum >= actualGoal || ++iterations > 999) { break; }
+        if (tta.incomeGraph.total >= tta.actualGoal || ++tta.incomeGraph.iterations > 999) {
+            break;
+        }
     }
 
-    return {
-        now: now,
-        tz: tz,
-        date: pointer,
-        duration: now.until(pointer),
-        info: { 
-            sum: sum,
-            goal: goal,
-            buffer: settings.buffer,
-            iterations: iterations,
-            wageIncreases: wageIncreases
-        }
-    };
+    return tta;
 }
 
 /**
