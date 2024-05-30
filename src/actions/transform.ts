@@ -12,6 +12,15 @@ import {
     Settings,
     Income
 } from '../types';
+import { 
+    preDefinedTTAIntensities as ttaColors,
+    TTA,
+    IncomeDataGraph,
+    IncomeDatapoint,
+    IncomeData,
+    Intensity,
+    lerp
+} from './transformTypes';
 
 /**
  * XPath used to find "numbers" (prices) on the website.
@@ -32,7 +41,7 @@ export const overrideNode = '<span class="overridden-price">$&</span>'
 /**
  * Node/Element (Helement) that replaces the selected node's existing content.
  */
-export const newContent = '<span class="new-content">$&</span>'
+export const newNode = '<span class="new-content">$&</span>'
 /**
  * Node/Element (Helement) that stores a node's existing content.
  */
@@ -95,7 +104,7 @@ export default async function Transform(): Promise<ActionResult> {
         ) {
             if (node.textContent && pattern.test(node.textContent)) {
                 let price: string = node.textContent.replace(pattern, overrideNode);
-                let newContent: string = backupNode.replace('$&', price);
+                let newContent: string = newNode.replace('$&', price);
                 let oldContent: string = backupNode.replace('$&', node.innerHTML!);
                 
                 if (newContent) {
@@ -121,8 +130,11 @@ export default async function Transform(): Promise<ActionResult> {
     }
 
     // Transform each node's HTML Content with the calculated TTA (Time-To-Afford)
-    nodes.forEach(_ => TransformHTML(_ as Helement, storage));
-    console.log('nodes', nodes);
+    await Promise.all(
+        nodes.map(_ => TransformHTML(_ as Helement, storage))
+    );
+
+    console.debug('Post-transform Nodes:', nodes);
 
     if (d.savie.observer) {
         clearTimeout(d.savie.observerShutdownTimer);
@@ -155,42 +167,6 @@ export default async function Transform(): Promise<ActionResult> {
             nodes: nodes
         }
     };
-}
-
-export interface IncomeDatapoint {
-    value: number,
-    data: { 
-        income: Income,
-        active: boolean,
-    }
-}
-export interface IncomeData {
-    sum: number,
-    date: Temporal.ZonedDateTime,
-    data: IncomeDatapoint[]
-}
-export type IncomeDataGraph = {
-    graph: IncomeData[],
-    wageIncreases: number,
-    iterations: number,
-    total: number
-}
-
-export type TTA = {
-    /** (upfrontCost * price) */
-    goal: number,
-    /** goal + Buffer incl. */
-    actualGoal: number,
-    /** Current ZonedDateTime */
-    now: Temporal.ZonedDateTime,
-    /** Timezone Used for zoned-dates */
-    tz: Temporal.TimeZoneProtocol,
-    /** TTA (Time-To-Afford) date. */
-    date: Temporal.ZonedDateTime,
-    /** TTA (Time-To-Afford) duration. (`date` minus `now`) */
-    duration: Temporal.Duration,
-    /** Accumulation of data from the recursive calulations below. */
-    incomeGraph: IncomeDataGraph
 }
 
 /**
@@ -300,7 +276,8 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
         !contentNode ||
         !priceNode
     ) {
-        throw new Error('TransformHTML - `node` or its `.textContent` is falsy/undefined: ' + (typeof node));
+        console.warn('TransformHTML - `node` or its `.textContent` is falsy/undefined: ' + (typeof node));
+        return false;
     }
 
     let numContent: string = priceNode.textContent!.replace(/[\ SsEeKkRr\:\-]/g, '');
@@ -320,8 +297,79 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
     const tta = calculateTTA(price, storage.settings, storage.incomes);
     console.debug('tta', `${numContent} - ${tta.date.toLocaleString()}`, tta);
 
-    const container = stringToHTML('<>')
-    priceNode.textContent = `${numContent} - ${tta.date.toLocaleString()}`; 
+    let _mHelper = (
+        { years = 0, months = 0 } : { years?: number, months?: number }
+    ): number => years * 12 + months
+    
+    let intensity: {
+        factor: number,
+        primary: Intensity,
+        secondary?: Intensity,
+        calculate: () => Intensity
+    } = {
+        factor: 0,
+        primary: ttaColors.high,
+        calculate: function (): Intensity {
+            if (!this.secondary) {
+                return this.primary;
+            }
+
+            let calculatedIntensity = {
+                ...this.primary,
+                backgroundImage: {
+                    ...this.primary.backgroundImage,
+                    steps: {} // We calculate this below..
+                },
+                border: {
+                    ...this.primary.border,
+                    color: lerp(this.primary.border.color, this.secondary.border.color, this.factor),
+                }
+            };
+
+            Object.keys(calculatedIntensity.backgroundImage.steps).map()
+
+            return calculatedIntensity;
+        }
+    };
+
+    if (tta.duration.years >= ttaColors.high.startAtYear) {
+        if (intensity.secondary) {
+            delete intensity.secondary
+        }
+        intensity.primary = ttaColors.high;
+        intensity.factor = 1;
+    }
+    else if (tta.duration.years >= ttaColors.medium.startAtYear) {
+        intensity.primary = ttaColors.medium;
+        intensity.secondary = ttaColors.high;
+        intensity.factor = 1 / (_mHelper(tta.duration) - _mHelper(
+            { years: ttaColors.high.startAtYear }
+        ));
+    }
+    else if (tta.duration.years >= ttaColors.low.startAtYear) {
+        intensity.primary = ttaColors.low;
+        intensity.secondary = ttaColors.medium;
+        intensity.factor = 1 / (_mHelper(tta.duration) - _mHelper(
+            { years: ttaColors.medium.startAtYear }
+        ));
+    }
+    else {
+        if (intensity.secondary) {
+            delete intensity.secondary
+        }
+        intensity.primary = ttaColors.low;
+        intensity.factor = 1;
+    }
+
+    const container = stringToHTML(
+        `<div class="savie-hover" style="background-image:${intensity.primary.backgroundImage.rule()}"></div>`
+    );
+
+    const headline = stringToHTML('<h4 id="savie-tta-headline"></h4>');
+    const durationParagraph = stringToHTML('<p id="savie-tta-paragraph"></p>');
+    const graph = stringToHTML('<div class="savie-graph"></div>');
+    
+
     return true;
 }
 

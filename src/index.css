@@ -3,3 +3,9 @@
 span.old-content-backup {
     display: none;
 }
+
+div.savie-hover {
+    border-radius: 0.75rem;
+    padding: 0.66rem;
+
+}
