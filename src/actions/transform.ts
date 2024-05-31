@@ -15,6 +15,7 @@ import {
 import { 
     preDefinedTTAIntensities as ttaColors,
     TTA,
+    Percent,
     IncomeDataGraph,
     IncomeDatapoint,
     IncomeData,
@@ -156,8 +157,7 @@ export default async function Transform(): Promise<ActionResult> {
                 delete d.savie.observer;
             }
         }, d.savie.observerLifespan
-    );
-    
+    ); 
 
     return {
         status: Status.Success,
@@ -305,31 +305,11 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
         factor: number,
         primary: Intensity,
         secondary?: Intensity,
-        calculate: () => Intensity
+        final: Intensity
     } = {
         factor: 0,
         primary: ttaColors.high,
-        calculate: function (): Intensity {
-            if (!this.secondary) {
-                return this.primary;
-            }
-
-            let calculatedIntensity = {
-                ...this.primary,
-                backgroundImage: {
-                    ...this.primary.backgroundImage,
-                    steps: {} // We calculate this below..
-                },
-                border: {
-                    ...this.primary.border,
-                    color: lerp(this.primary.border.color, this.secondary.border.color, this.factor),
-                }
-            };
-
-            Object.keys(calculatedIntensity.backgroundImage.steps).map()
-
-            return calculatedIntensity;
-        }
+        final: ttaColors.high
     };
 
     if (tta.duration.years >= ttaColors.high.startAtYear) {
@@ -342,16 +322,16 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
     else if (tta.duration.years >= ttaColors.medium.startAtYear) {
         intensity.primary = ttaColors.medium;
         intensity.secondary = ttaColors.high;
-        intensity.factor = 1 / (_mHelper(tta.duration) - _mHelper(
-            { years: ttaColors.high.startAtYear }
-        ));
+        intensity.factor = 1 / (
+            _mHelper({ years: ttaColors.high.startAtYear }) - _mHelper(tta.duration)
+        );
     }
     else if (tta.duration.years >= ttaColors.low.startAtYear) {
         intensity.primary = ttaColors.low;
         intensity.secondary = ttaColors.medium;
-        intensity.factor = 1 / (_mHelper(tta.duration) - _mHelper(
-            { years: ttaColors.medium.startAtYear }
-        ));
+        intensity.factor = 1 / (
+            _mHelper({ years: ttaColors.medium.startAtYear }) - _mHelper(tta.duration)
+        );
     }
     else {
         if (intensity.secondary) {
@@ -361,14 +341,70 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
         intensity.factor = 1;
     }
 
+    intensity.final = intensity.primary
+
+    // Linearly Interpolate (lerp) `primary` & `secondary` to arrive at the `final` intensity.
+    if (intensity.secondary) {
+        intensity.final = {
+            ...intensity.primary,
+            backgroundImage: {
+                ...intensity.primary.backgroundImage,
+                steps: {} // We calculate this below..
+            },
+            border: {
+                ...intensity.primary.border,
+                color: lerp(
+                    intensity.primary.border.color, 
+                    intensity.secondary.border.color, 
+                    intensity.factor
+                ),
+            }
+        };
+
+        let primaryKeys = Object.keys(intensity.primary.backgroundImage.steps) as Percent[];
+        let secondaryKeys = Object.keys(intensity.secondary.backgroundImage.steps) as Percent[];
+
+        // "Intersect" the keys of `primaryKeys` and `secondaryKeys`
+        // Add the result of linearly interpolating the RGB of each key to `final`.
+        primaryKeys
+            .filter(_ => secondaryKeys.includes(_))
+            .forEach(
+                _ => intensity.final.backgroundImage.steps[_] = lerp(
+                    intensity.primary.backgroundImage.steps[_]!,
+                    intensity.secondary!.backgroundImage.steps[_]!,
+                    intensity.factor
+                )
+            );
+    }
+
+    console.debug('intensity', intensity);
+
     const container = stringToHTML(
-        `<div class="savie-hover" style="background-image:${intensity.primary.backgroundImage.rule()}"></div>`
+        `<div class="savie-hover" style="background-image:${intensity.final.backgroundImage.rule()}"></div>`
     );
 
     const headline = stringToHTML('<h4 id="savie-tta-headline"></h4>');
     const durationParagraph = stringToHTML('<p id="savie-tta-paragraph"></p>');
     const graph = stringToHTML('<div class="savie-graph"></div>');
     
+    const incomeGraphs: {
+        [id: string]: Helement
+    } = {};
+    storage.incomes.forEach(
+        _ => incomeGraphs[_.id] = (
+            stringToHTML('<div id="savie-income-graph-'+_.id+'" class="savie-income-graph"></div>')
+        )
+    );
+
+    tta.incomeGraph.graph.forEach(
+        datapoint => {
+            datapoint.data.forEach(
+                point => incomeGraphs[point.data.income.id].prepend(
+                    stringToHTML('<span id="savie-'+point.data.income.id+'-graph-datapoint" class="savie-graph-datapoint"></span>')
+                )
+            );
+        }
+    )
 
     return true;
 }
