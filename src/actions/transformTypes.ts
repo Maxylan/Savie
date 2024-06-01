@@ -75,7 +75,7 @@ export const preDefinedTTAIntensities: {
         startAtYear: 2,
         backgroundImage: {
             rule: function () {
-                return 'linear-gradient(340deg,' + (Object.keys(this.steps) as Percent[]).map(_ => `rgb(${this.steps[_]!.r},${this.steps[_]!.g},${(this.steps[_] as RGB)!.b}) 0%`).join('')
+                return 'linear-gradient(340deg,' + (Object.keys(this.steps) as Percent[]).map(_ => `rgb(${this.steps[_]!.r},${this.steps[_]!.g},${(this.steps[_] as RGB)!.b}) ${_}`).join(', ')
             },
             steps: {
                 '0%': { r: 250, g: 250, b: 250 },

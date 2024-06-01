@@ -38,15 +38,15 @@ export const pattern = /[0-9SsEeKkRr\ \:\-]{9,}/g
 /**
  * Node/Element (Helement) containing the price that we're overriding.
  */
-export const overrideNode = '<span class="overridden-price">$&</span>'
+export const overrideNode = '<span class="savie-overridden-price">$&</span>'
 /**
  * Node/Element (Helement) that replaces the selected node's existing content.
  */
-export const newNode = '<span class="new-content">$&</span>'
+export const newNode = '<span class="savie-new-content">$&</span>'
 /**
  * Node/Element (Helement) that stores a node's existing content.
  */
-export const backupNode = '<span class="old-content-backup">$&</span>'
+export const backupNode = '<span class="savie-old-content-backup">$&</span>'
 
 export type TransformResult = {
     observer: MutationObserver,
@@ -99,10 +99,20 @@ export default async function Transform(): Promise<ActionResult> {
         let node = nodesIterator.snapshotItem(i) as Helement;
         if (!node || ++i > 99999) { break; }
         
-        if (!node.classList.contains('overridden-price') &&
-            !node.classList.contains('new-content') &&
-            !node.classList.contains('old-content-backup')
-        ) {
+        if (![ // **NOT!!!**
+            'savie-new-content',
+            'savie-old-content-backup',
+            'savie-hover',
+            'savie-tta-headline',
+            'savie-tta-paragraph',
+            'savie-graph',
+            'savie-income-graph',
+            'savie-graph-datapoint',
+            'savie-graph-datapoint-graph-content', 
+            'savie-graph-datapoint-graph-active',
+            'savie-graph-datapoint-graph-inactive' 
+        ].some(_ => node.classList.contains(_))) 
+        {
             if (node.textContent && pattern.test(node.textContent)) {
                 let price: string = node.textContent.replace(pattern, overrideNode);
                 let newContent: string = newNode.replace('$&', price);
@@ -268,9 +278,9 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
         return false;
     }
 
-    const contentBackupNode: Helement|null = node.querySelector('.overridden-price');
-    const contentNode: Helement|null = node.querySelector('.new-content');
-    const priceNode: Helement|undefined|null = contentNode?.querySelector('.old-content-backup');
+    const contentBackupNode: Helement|null = node.querySelector('.savie-overridden-price');
+    const contentNode: Helement|null = node.querySelector('.savie-new-content');
+    const priceNode: Helement|undefined|null = node?.querySelector('.savie-old-content-backup');
     
     if (!contentBackupNode ||
         !contentNode ||
@@ -380,31 +390,63 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
     console.debug('intensity', intensity);
 
     const container = stringToHTML(
-        `<div class="savie-hover" style="background-image:${intensity.final.backgroundImage.rule()}"></div>`
+        '<div class="savie-hover" style="background-image:'+intensity.final.backgroundImage.rule()+'">' +
+        '<h4 id="savie-tta-headline"></h4>' +
+        '<p id="savie-tta-paragraph"></p>' +
+        '</div>'
     );
 
-    const headline = stringToHTML('<h4 id="savie-tta-headline"></h4>');
-    const durationParagraph = stringToHTML('<p id="savie-tta-paragraph"></p>');
     const graph = stringToHTML('<div class="savie-graph"></div>');
     
-    const incomeGraphs: {
+    const incomeGraphContainers: {
         [id: string]: Helement
     } = {};
     storage.incomes.forEach(
-        _ => incomeGraphs[_.id] = (
-            stringToHTML('<div id="savie-income-graph-'+_.id+'" class="savie-income-graph"></div>')
+        _ => incomeGraphContainers[_.id] = (
+            stringToHTML('<div id="savie-graph-'+_.id+'" class="savie-income-graph"></div>')
         )
     );
 
     tta.incomeGraph.graph.forEach(
-        datapoint => {
-            datapoint.data.forEach(
-                point => incomeGraphs[point.data.income.id].prepend(
-                    stringToHTML('<span id="savie-'+point.data.income.id+'-graph-datapoint" class="savie-graph-datapoint"></span>')
-                )
+        iteration => {
+            iteration.data.forEach(
+                (point, i) => {
+                    const datapoint = 
+                        stringToHTML(
+                            '<span id="savie-graph-'+point.data.income.id+'-datapoint"' +
+                            'class="savie-graph-datapoint" data-index="'+i+'">' + (point.data.active 
+                                ? '<span class="savie-graph-datapoint-graph-active"></span>'
+                                : '<span class="savie-graph-datapoint-graph-inactive"></span>'
+                            ) +
+                            '</span>'
+                        ),
+                        content = stringToHTML(
+                            '<span class="savie-graph-datapoint-content">' +
+                            (point.data.active ? point.value : 'Not Active') +
+                            '</span>'
+                        );
+
+                    datapoint.append(content);
+
+                    datapoint.addEventListener('mouseover', function () {
+                        (content as HTMLDivElement).style.display = 'initial';
+                    });
+                    datapoint.addEventListener('mouseout', function () {
+                        (content as HTMLDivElement).style.display = 'hidden';
+                    });
+
+                    incomeGraphContainers[point.data.income.id].append(datapoint);
+                }
             );
         }
-    )
+    );
+
+    Object.keys(incomeGraphContainers).forEach(
+        _ => graph.append(incomeGraphContainers[_])
+    );
+
+    container.append(graph);
+    contentNode.append(container);
 
     return true;
 }

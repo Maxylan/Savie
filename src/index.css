@@ -1,11 +1,50 @@
 /* @Maxylan */
 
-span.old-content-backup {
+span.savie-new-content {
+    font-family: "Noto Sans", Roboto, monospace;
+    font-size: 14px;
+}
+
+span.savie-old-content-backup {
     display: none;
 }
 
 div.savie-hover {
     border-radius: 0.75rem;
     padding: 0.66rem;
+    
+}
 
+h4#savie-tta-headline {
+    
+}
+
+p#savie-tta-paragraph {
+    
+}
+
+div.savie-graph {
+    
+}
+
+span.savie-income-graph {
+    
+}
+
+span.savie-graph-datapoint {
+    
+}
+
+span.savie-graph-datapoint-graph-content { 
+    background: #F9F9F9;
+    border: 
+}
+
+span.savie-graph-datapoint-graph-active {
+    border-top: #aaaaaa 2px solid;
+    border-bottom: #aaaaaa 2px solid;
+}
+span.savie-graph-datapoint-graph-inactive { 
+    border-top: #aaaaaa 2px solid;
+    border-bottom: #aaaaaa 2px solid;
 }
