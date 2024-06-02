@@ -186,11 +186,18 @@ export const calculateTTA = (goal: number, settings: Settings, incomes: Income[]
 
     const wageIncrease = () => 1 + tta.incomeGraph.wageIncreases * (settings.annualGrowth / 100);
     let now = Temporal.Now.zonedDateTimeISO();
-    let pointer = now;
     let tta = {
-        goal: goal,
-        actualGoal: goal + settings.buffer,
-        now: now ,
+        goal: {
+            original: {
+                price: goal,
+                upfront: goal * settings.upfrontCost
+            },
+            withBuffer: {
+                price: goal + settings.buffer,
+                upfront: (goal + settings.buffer) * settings.upfrontCost
+            }
+        },
+        now: now,
         tz: now.getTimeZone(),
         date: now,
         duration: Temporal.Duration.from({ seconds: 0 }),
@@ -203,35 +210,35 @@ export const calculateTTA = (goal: number, settings: Settings, incomes: Income[]
     };
 
     while(true) {
-        if (pointer.month === 12 && pointer.day >= 25) {
-            pointer = Temporal.ZonedDateTime.from(pointer).with({
-                year: pointer.year + 1,
+        if (tta.date.month === 12 && tta.date.day >= 25) {
+            tta.date = Temporal.ZonedDateTime.from(tta.date).with({
+                year: tta.date.year + 1,
                 month: 1,
                 day: 25
             });
         }
-        else if (pointer.day === 25 || pointer.day > 25) {
-            pointer = Temporal.ZonedDateTime.from(pointer).with({
-                month: pointer.month + 1,
+        else if (tta.date.day === 25 || tta.date.day > 25) {
+            tta.date = Temporal.ZonedDateTime.from(tta.date).with({
+                month: tta.date.month + 1,
                 day: 25
             });
         }
         else {
-            pointer = Temporal.ZonedDateTime.from(pointer).with({ day: 25 });
+            tta.date = Temporal.ZonedDateTime.from(tta.date).with({ day: 25 });
         }
 
         // Increse wages each April..
-        if (pointer.month === 4) {
+        if (tta.date.month === 4) {
             ++tta.incomeGraph.wageIncreases;
         }
 
         let iterationData: IncomeData = {
             sum: 0,
-            date: structuredClone(pointer),
+            date: structuredClone(tta.date),
             data: incomes.map<IncomeDatapoint>((inc: Income): IncomeDatapoint => {
-                // Compare income `start`/`end` dates (if any) against current `pointer`
-                if ((inc.start && Temporal.PlainDateTime.compare(pointer, inc.start) === -1) ||
-                    (inc.end && Temporal.PlainDateTime.compare(pointer, inc.end) === 1)
+                // Compare income `start`/`end` dates (if any) against current `tta.date`
+                if ((inc.start && Temporal.PlainDateTime.compare(tta.date, inc.start) === -1) ||
+                    (inc.end && Temporal.PlainDateTime.compare(tta.date, inc.end) === 1)
                 ) {
                     return {
                         value: 0,
@@ -390,9 +397,17 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
     console.debug('intensity', intensity);
 
     const container = stringToHTML(
-        '<div class="savie-hover" style="background-image:'+intensity.final.backgroundImage.rule()+'">' +
-        '<h4 id="savie-tta-headline"></h4>' +
-        '<p id="savie-tta-paragraph"></p>' +
+        '<div class="savie-hover savie-hover-hidden" style="background-image:'+intensity.final.backgroundImage.rule()+'">' +
+        '<h3 id="savie-tta-headline">' + 
+            new Intl.DateTimeFormat('sv-SE', { 
+                year: "numeric",
+                month: "long",
+            }).format(new Date(tta.date.epochMilliseconds)) +
+        '</h3>' +
+        '<p id="savie-tta-paragraph">' + 
+            'The goal '+tta.actualGoal &+' ' + 
+            'will be achieved ' + tta.duration.toLocaleString('sv') + ' from now!' + 
+        '</p>' +
         '</div>'
     );
 
@@ -444,9 +459,20 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
     Object.keys(incomeGraphContainers).forEach(
         _ => graph.append(incomeGraphContainers[_])
     );
+    
+    node.addEventListener('mouseenter',
+        _ => container.classList.remove('savie-hover-hidden')
+    );
+    (container as HTMLDivElement).addEventListener('mouseleave',
+        _ => container.classList.add('savie-hover-hidden')
+    );
+
+    const newContentRect = contentNode.getBoundingClientRect();
+    (container as HTMLDivElement).style.top = `${window.scrollY + newContentRect.top}px`; 
+    (container as HTMLDivElement).style.left = `${window.scrollX + newContentRect.left}px`; 
 
     container.append(graph);
-    contentNode.append(container);
+    d.querySelector('body')!.append(container);
 
     return true;
 }

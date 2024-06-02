@@ -1,8 +1,6 @@
 /* @Maxylan */
 
 span.savie-new-content {
-    font-family: "Noto Sans", Roboto, monospace;
-    font-size: 14px;
 }
 
 span.savie-old-content-backup {
@@ -10,9 +8,20 @@ span.savie-old-content-backup {
 }
 
 div.savie-hover {
+    display: block;
+    position: absolute;
+    z-index: 98;
+    font-family: "Noto Sans", Roboto, monospace;
+    font-size: 12px;
+    opacity: 1;
     border-radius: 0.75rem;
     padding: 0.66rem;
-    
+    width: 24rem;
+    transition: display 0.2s, opacity 0.33s linear;
+}
+div.savie-hover-hidden.savie-hover-hidden {
+    display: none;
+    opacity: 0;
 }
 
 h4#savie-tta-headline {
@@ -24,25 +33,31 @@ p#savie-tta-paragraph {
 }
 
 div.savie-graph {
-    
+    overflow-x: scroll;
 }
 
 span.savie-income-graph {
-    
+    display: flex;
 }
 
 span.savie-graph-datapoint {
-    
+    width: 1rem;
 }
 
 span.savie-graph-datapoint-graph-content { 
+    display: none;
     background: #F9F9F9;
-    border: 
+    border: #aaaaaa 1px solid;
+    border-radius: 0.3rem;
+    padding: 0.25rem;
 }
 
 span.savie-graph-datapoint-graph-active {
     border-top: #aaaaaa 2px solid;
     border-bottom: #aaaaaa 2px solid;
+    width: 100%;
+    margin-top: auto;
+    margin-bottom: auto;
 }
 span.savie-graph-datapoint-graph-inactive { 
     border-top: #aaaaaa 2px solid;

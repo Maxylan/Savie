@@ -25,11 +25,16 @@ export type IncomeDataGraph = {
     iterations: number,
     total: number
 }
+export interface Goal {
+    price: number,
+    upfront: number
+};
 
 export type TTA = {
-    /** (upfrontCost * price) */
-    goal: number,
-    /** goal + Buffer incl. */
+    goal: {
+        original: Goal,
+        withBuffer: Goal
+    },
     actualGoal: number,
     /** Current ZonedDateTime */
     now: Temporal.ZonedDateTime,
