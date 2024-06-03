@@ -452,7 +452,7 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
     // console.debug('intensity', intensity);
     
     // Style the text-content with the newly calculated intensity.
-    priceNode.innerHTML += '&ensp;' + intensity.note;
+    priceNode.innerHTML += '&nbsp;' + intensity.note + '&nbsp;';
     let priceColor = lerp({r: 2, g: 2, b: 2}, intensity.final.border.color, 0.64);
     (priceNode as HTMLSpanElement).style.color = `rgb(${priceColor.r}, ${priceColor.g}, ${priceColor.b})`;
 
