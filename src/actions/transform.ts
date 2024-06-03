@@ -435,9 +435,10 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
     }
 
     // console.debug('intensity', intensity);
-    priceNode.innerHTML += '&ensp;' + intensity.note;
     
-    let priceColor = lerp({r: 0, g: 0, b: 0}, intensity.final.border.color, 0.64);
+    // Style the text-content with the newly calculated intensity.
+    priceNode.innerHTML += '&ensp;' + intensity.note;
+    let priceColor = lerp({r: 2, g: 2, b: 2}, intensity.final.border.color, 0.64);
     (priceNode as HTMLSpanElement).style.color = `rgb(${priceColor.r}, ${priceColor.g}, ${priceColor.b})`;
 
     const dateTimeFormat = new Intl.DateTimeFormat('sv-SE', { 
@@ -471,15 +472,16 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
         '<p id="savie-tta-paragraph">' + 
             'You will have saved up..&ensp;<strong>' + tF(tta.incomeGraph.total) + ' :-</strong><br/>' +
             '&emsp;│<br/>' +
-            '&emsp;├─ Your goal of..<br/>' +
+            '&emsp;├─&ensp;Your goal of..<br/>' +
             '&emsp;│&emsp;&emsp;&ensp;'+goalPrint +'<br/>' +
-            '&emsp;╰─ will be achieved..<br/>' +
+            '&emsp;╰─&ensp;will be achieved..<br/>' +
             '&emsp;&emsp;&emsp;&emsp;<strong>' + durationFormat(tta.duration) + '</strong> from now!' + 
         '</p>' +
         '</div>'
     );
 
-    // container.classList.add('savie-hover-hidden');
+    // Hide the 'savie-hover' container element..
+    container.classList.add('savie-hover-hidden');
 
     const graph = stringToHTML('<div class="savie-graph"></div>');
     
