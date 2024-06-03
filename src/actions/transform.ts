@@ -439,15 +439,15 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
     const durationFormat = (duration: Temporal.Duration) => {
         let formatted: string = '';
         if (duration.years > 0) {
-            formatted += `${duration.years} years` 
+            formatted += `${duration.years} Years` 
         }
 
-        formatted += (formatted ? ' and ' : '') + `${duration.months} months` 
+        formatted += (formatted ? ' and ' : '') + `${duration.months} Months` 
 
         return formatted;
     }
 
-    let goalPrint = `<strong>${tF(tta.goal.calculated.upfront)} :-</strong> <i>(${storage.settings.upfrontCost}% of ${tF(tta.goal.original.price)}:-, ${(storage.settings.buffer < 0 ? 'minus '+tF(storage.settings.buffer):'plus '+tF(storage.settings.buffer))}:-)</i>`;
+    let goalPrint = `<strong>${tF(tta.goal.calculated.upfront)} :-</strong>&ensp;<i>(${storage.settings.upfrontCost}% of ${tF(tta.goal.original.price)}:-, ${(storage.settings.buffer < 0 ? 'minus '+tF(storage.settings.buffer):'plus '+tF(storage.settings.buffer))}:-)</i>`;
 
     const container = stringToHTML(
         '<div class="savie-hover" style="' +
@@ -458,9 +458,11 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
         '</h3>' +
         '<p id="savie-tta-paragraph">' + 
             'Total Saved: <strong>' + tF(tta.incomeGraph.total) + ' :-</strong><br/>' +
-            '│<br/>' +
-            '├─ Your goal of.. '+ goalPrint +'<br/>' +
-            '╰─ ..will be achieved <strong>' + durationFormat(tta.duration) + '</strong> from now!' + 
+            '&ensp;│<br/>' +
+            '&ensp;├─ Your goal of..<br/>' +
+            '&ensp;│&emsp;&emsp;'+goalPrint +'<br/>' +
+            '&ensp;╰─ will be achieved..<br/>' +
+            '&emsp;&emsp;&emsp;<strong>' + durationFormat(tta.duration) + '</strong> from now!' + 
         '</p>' +
         '</div>'
     );
