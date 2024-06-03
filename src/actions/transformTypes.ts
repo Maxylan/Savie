@@ -33,9 +33,8 @@ export interface Goal {
 export type TTA = {
     goal: {
         original: Goal,
-        withBuffer: Goal
+        calculated: Goal
     },
-    actualGoal: number,
     /** Current ZonedDateTime */
     now: Temporal.ZonedDateTime,
     /** Timezone Used for zoned-dates */
@@ -80,7 +79,7 @@ export const preDefinedTTAIntensities: {
         startAtYear: 2,
         backgroundImage: {
             rule: function () {
-                return 'linear-gradient(340deg,' + (Object.keys(this.steps) as Percent[]).map(_ => `rgb(${this.steps[_]!.r},${this.steps[_]!.g},${(this.steps[_] as RGB)!.b}) ${_}`).join(', ')
+                return 'linear-gradient(340deg, ' + (Object.keys(this.steps) as Percent[]).map(_ => `rgb(${this.steps[_]!.r},${this.steps[_]!.g},${(this.steps[_] as RGB)!.b}) ${_}`).join(', ') + ')'
             },
             steps: {
                 '0%': { r: 250, g: 250, b: 250 },
@@ -99,14 +98,14 @@ export const preDefinedTTAIntensities: {
                 return `${this.thickness}px rgb(${this.color.r}, ${this.color.g}, ${this.color.b}) solid`
             },
             thickness: 1,
-            color: { r: 255, g: 221, b: 0 },
+            color: { r: 114, g: 255, b: 92 },
         }
     },
     medium: {
         startAtYear: 5,
         backgroundImage: {
             rule: function () {
-                return 'linear-gradient(345deg,' + (Object.keys(this.steps) as Percent[]).map(_ => `rgb(${this.steps[_]!.r},${this.steps[_]!.g},${(this.steps[_] as RGB)!.b}) 0%`).join('')
+                return 'linear-gradient(345deg, ' + (Object.keys(this.steps) as Percent[]).map(_ => `rgb(${this.steps[_]!.r},${this.steps[_]!.g},${(this.steps[_] as RGB)!.b}) ${_}`).join(', ') + ')'
             },
             steps: {
                 '0%': { r: 250, g: 250, b: 250 },
@@ -125,14 +124,14 @@ export const preDefinedTTAIntensities: {
                 return `${this.thickness}px rgb(${this.color.r}, ${this.color.g}, ${this.color.b}) solid`
             },
             thickness: 2,
-            color: { r: 255, g: 221, b: 0 },
+            color: { r: 255, g: 233, b: 97 },
         }
     },
     high: {
         startAtYear: 8,
         backgroundImage: {
             rule: function () {
-                return 'linear-gradient(350deg,' + (Object.keys(this.steps) as Percent[]).map(_ => `rgb(${this.steps[_]!.r},${this.steps[_]!.g},${(this.steps[_] as RGB)!.b}) 0%`).join('')
+                return 'linear-gradient(350deg, ' + (Object.keys(this.steps) as Percent[]).map(_ => `rgb(${this.steps[_]!.r},${this.steps[_]!.g},${(this.steps[_] as RGB)!.b}) ${_}`).join(', ') + ')'
             },
             steps: {
                 '0%': { r: 250, g: 250, b: 250 },
@@ -151,7 +150,7 @@ export const preDefinedTTAIntensities: {
                 return `${this.thickness}px rgb(${this.color.r}, ${this.color.g}, ${this.color.b}) solid`
             },
             thickness: 3,
-            color: { r: 255, g: 221, b: 0 },
+            color: { r: 238, g: 88, b: 58 },
         }
     }
 }; 

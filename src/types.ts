@@ -23,7 +23,7 @@ export type ActionResult<T = any> = {
 };
 
 export type ActionResultCallback = 
-    (prev?: ActionResult) => Promise<ActionResult>;
+    (prev?: ActionResult, ...rest: any) => Promise<ActionResult>;
 
 export type Savie = {
     init: boolean,

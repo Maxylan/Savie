@@ -21,7 +21,7 @@ export const s = (microseconds: number = 1): number => microseconds * 1000
 /**
  * Returns a version of `func` that's "debounced"
  */
-export const debounce = <TFunction extends Function>(func: TFunction, wait: number = 400): TFunction => {
+export const debounce = <TFunction extends Function>(func: TFunction, wait: number = 500): TFunction => {
 	var timeout: any;
 	return (
         function() {

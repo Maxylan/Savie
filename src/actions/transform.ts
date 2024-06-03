@@ -53,7 +53,10 @@ export type TransformResult = {
     nodes: Node[]
 }
 
-export default async function Transform(): Promise<ActionResult> {
+/**
+ * TODO! Document me! :)
+ */
+export default async function Transform(prev?: ActionResult, createObserver: boolean = true): Promise<ActionResult> {
 
     const storage: ExtStorage = await browser.storage.local.get(['incomes', 'settings']);
     if (!storage || !storage.settings || !storage.incomes) {
@@ -87,6 +90,20 @@ export default async function Transform(): Promise<ActionResult> {
         });
     }
 
+    // If an observer exists, de-activate it before modifying the DOM 
+    // (avoids potential inifinite loops)
+    if (d.savie.observer) {
+        d.savie.observer.disconnect();
+        clearTimeout(d.savie.observerShutdownTimer);
+
+        // Delete the existing one, a new one will be created after
+        // tta-calculations and `transformHTML(...)` are done..
+        if (createObserver) {
+            delete d.savie.observerShutdownTimer;
+            delete d.savie.observer;
+        }
+    }
+
     const nodes: Node[] = [], nodesIterator = document.evaluate(
         xpath, 
         document, 
@@ -99,8 +116,12 @@ export default async function Transform(): Promise<ActionResult> {
         let node = nodesIterator.snapshotItem(i) as Helement;
         if (!node || ++i > 99999) { break; }
         
+        // Prevent matching against nodes with our internal classes.
+        // Very ugly, there must be a better way..
+        // 
         if (![ // **NOT!!!**
             'savie-new-content',
+            'savie-overridden-price',
             'savie-old-content-backup',
             'savie-hover',
             'savie-tta-headline',
@@ -111,7 +132,7 @@ export default async function Transform(): Promise<ActionResult> {
             'savie-graph-datapoint-graph-content', 
             'savie-graph-datapoint-graph-active',
             'savie-graph-datapoint-graph-inactive' 
-        ].some(_ => node.classList.contains(_))) 
+        ].some(_ => node.id === _ || node.classList.contains(_))) 
         {
             if (node.textContent && pattern.test(node.textContent)) {
                 let price: string = node.textContent.replace(pattern, overrideNode);
@@ -147,27 +168,27 @@ export default async function Transform(): Promise<ActionResult> {
 
     console.debug('Post-transform Nodes:', nodes);
 
-    if (d.savie.observer) {
-        clearTimeout(d.savie.observerShutdownTimer);
-        delete d.savie.observerShutdownTimer;
-        
-        d.savie.observer.disconnect();
-        delete d.savie.observer;
+    if (createObserver) {    
+        d.savie.observer = new MutationObserver(
+            debounce(() => Transform(prev, false))
+        );
     }
-    
-    d.savie.observer = new MutationObserver(debounce(Transform));
-    d.savie.observer.observe(d.querySelector('body')!, d.savie.observerConfig);
-    
-    // Do some cleanup, so I don't leave an observer running in the users
-    // browser for an eternity...
-    setTimeout(
-        () => {
-            if (d.savie.observer) {
-                d.savie.observer.disconnect();
-                delete d.savie.observer;
-            }
-        }, d.savie.observerLifespan
-    ); 
+
+    // If we have a newly created, or disconnected observer instance..
+    if (d.savie.observer) {
+        d.savie.observer.observe(d.querySelector('body')!, d.savie.observerConfig);
+        
+        // "Enqueue" some cleanup, I don't want to leave an observer running 
+        // in the users browser performing an expensive operation for an eternity...
+        setTimeout(
+            () => {
+                if (d.savie.observer) {
+                    d.savie.observer.disconnect();
+                    delete d.savie.observer;
+                }
+            }, d.savie.observerLifespan
+        ); 
+    }
 
     return {
         status: Status.Success,
@@ -190,11 +211,11 @@ export const calculateTTA = (goal: number, settings: Settings, incomes: Income[]
         goal: {
             original: {
                 price: goal,
-                upfront: goal * settings.upfrontCost
+                upfront: goal * (settings.upfrontCost / 100)
             },
-            withBuffer: {
-                price: goal + settings.buffer,
-                upfront: (goal + settings.buffer) * settings.upfrontCost
+            calculated: {
+                price: goal + (settings.buffer ?? 0),
+                upfront: (goal * (settings.upfrontCost / 100)) + (settings.buffer ?? 0)
             }
         },
         now: now,
@@ -263,11 +284,15 @@ export const calculateTTA = (goal: number, settings: Settings, incomes: Income[]
         tta.incomeGraph.total += iterationData.sum;
         tta.incomeGraph.graph.push(iterationData);
 
-        if (tta.incomeGraph.total >= tta.actualGoal || ++tta.incomeGraph.iterations > 999) {
+        if (tta.incomeGraph.total >= tta.goal.calculated.upfront || ++tta.incomeGraph.iterations > 999) {
             break;
         }
     }
 
+    // Calculate duration..
+    tta.duration = tta.now.until(tta.date, { largestUnit: 'year' });
+
+    // Done!
     return tta;
 }
 
@@ -312,7 +337,7 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
     }
     
     const tta = calculateTTA(price, storage.settings, storage.incomes);
-    console.debug('tta', `${numContent} - ${tta.date.toLocaleString()}`, tta);
+    // console.debug('tta', `${price} - ${tta.date.toLocaleString()}`, tta);
 
     let _mHelper = (
         { years = 0, months = 0 } : { years?: number, months?: number }
@@ -395,21 +420,45 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
     }
 
     console.debug('intensity', intensity);
+    
+    const dateTimeFormat = new Intl.DateTimeFormat('sv-SE', { 
+        year: "numeric",
+        month: "long",
+    });
+    
+    let dateTimePrint = dateTimeFormat.format(new Date(tta.date.epochMilliseconds));
+    dateTimePrint = dateTimePrint[0].toUpperCase() + dateTimePrint.substring(1)
+    
+    const durationFormat = (duration: Temporal.Duration) => {
+        let formatted: string = '';
+        if (duration.years > 0) {
+            formatted += `${duration.years} years` 
+        }
+
+        formatted += (formatted ? ' and ' : '') + `${duration.months} months` 
+
+        return formatted;
+    }
+
+    let goalPrint = `${tta.goal.calculated.upfront}:- (${storage.settings.upfrontCost}% of ${tta.goal.original.price}:-, ${(storage.settings.buffer < 0 ? 'minus '+storage.settings.buffer:'plus '+storage.settings.buffer)})`;
 
     const container = stringToHTML(
-        '<div class="savie-hover savie-hover-hidden" style="background-image:'+intensity.final.backgroundImage.rule()+'">' +
+        '<div class="savie-hover" style="' +
+            'background-image:' + intensity.final.backgroundImage.rule() +
+            '; border:' + intensity.final.border.rule()+';">' +
         '<h3 id="savie-tta-headline">' + 
-            new Intl.DateTimeFormat('sv-SE', { 
-                year: "numeric",
-                month: "long",
-            }).format(new Date(tta.date.epochMilliseconds)) +
+             dateTimePrint +
         '</h3>' +
         '<p id="savie-tta-paragraph">' + 
-            'The goal '+tta.actualGoal &+' ' + 
-            'will be achieved ' + tta.duration.toLocaleString('sv') + ' from now!' + 
+            'Total Saved: <strong>' + tta.incomeGraph.total + ':-</strong><br/>' +
+            '│<br/>' +
+            '├─ Your goal of.. '+ goalPrint +'<br/>' +
+            '╰─ ..will be achieved <strong>' + durationFormat(tta.duration) + '</strong> from now!' + 
         '</p>' +
         '</div>'
     );
+
+    // container.classList.add('savie-hover-hidden');
 
     const graph = stringToHTML('<div class="savie-graph"></div>');
     
