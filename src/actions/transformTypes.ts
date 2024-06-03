@@ -102,7 +102,7 @@ export const preDefinedTTAIntensities: {
         }
     },
     medium: {
-        startAtYear: 5,
+        startAtYear: 4,
         backgroundImage: {
             rule: function () {
                 return 'linear-gradient(345deg, ' + (Object.keys(this.steps) as Percent[]).map(_ => `rgb(${this.steps[_]!.r},${this.steps[_]!.g},${(this.steps[_] as RGB)!.b}) ${_}`).join(', ') + ')'
@@ -123,7 +123,7 @@ export const preDefinedTTAIntensities: {
             rule: function () {
                 return `${this.thickness}px rgb(${this.color.r}, ${this.color.g}, ${this.color.b}) solid`
             },
-            thickness: 2,
+            thickness: 1,
             color: { r: 255, g: 233, b: 97 },
         }
     },
@@ -149,7 +149,7 @@ export const preDefinedTTAIntensities: {
             rule: function () {
                 return `${this.thickness}px rgb(${this.color.r}, ${this.color.g}, ${this.color.b}) solid`
             },
-            thickness: 3,
+            thickness: 2,
             color: { r: 238, g: 88, b: 58 },
         }
     }

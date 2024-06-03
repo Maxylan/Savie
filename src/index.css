@@ -13,6 +13,9 @@ div.savie-hover {
     z-index: 98;
     font-family: "Noto Sans", Roboto, monospace;
     font-size: 12px;
+    font-smooth: auto;
+    -webkit-font-smoothing: auto;
+    -moz-osx-font-smoothing: auto;
     opacity: 1;
     border-radius: 0.75rem;
     padding: 0.66rem;

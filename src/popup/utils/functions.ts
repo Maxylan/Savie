@@ -19,6 +19,32 @@ import {
 export const s = (microseconds: number = 1): number => microseconds * 1000
 
 /**
+ * Formats a number >999 with spaces separating thousands.
+ */
+export const tF = (num: number|string): string => {
+    if (typeof num === 'string') {
+        num = parseInt(num.trim());
+
+        if (!num || isNaN(num)) {
+            return `${(num ?? '')}`;
+        }
+    }
+
+    let str = `${num}`.replace(/[SsEeKkRr\:\-]*/g, '').trim();
+    let index = (str.length % 3) || 3; // Start..
+    let result = str.slice(0, index) + ' ';
+
+    while(
+        index < str.length && 
+        str.length - index >= 3
+    ) {
+        result += str.slice(index, (index += 3)) + ' ';
+    }
+    
+    return result;
+}
+
+/**
  * Returns a version of `func` that's "debounced"
  */
 export const debounce = <TFunction extends Function>(func: TFunction, wait: number = 500): TFunction => {

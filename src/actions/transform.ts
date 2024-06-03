@@ -3,7 +3,7 @@
 //
 import { d } from '../index';
 import { Temporal } from '@js-temporal/polyfill'
-import { debounce, stringToHTML } from '../popup/utils/functions';
+import { tF, debounce, stringToHTML } from '../popup/utils/functions';
 import { 
     Status, 
     ActionResult,
@@ -328,13 +328,6 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
         console.warn('TransformHTML - Skipped Node with falsy/short/NaN text content:', node);
         return false;
     }
-
-    // Re-format numContent into a nicer-looking string.
-    let i = 0, sep = numContent.length % 3;
-    let formattedContent = numContent.slice(0, sep);
-    while(sep < numContent.length && ++i < 9999) { 
-        formattedContent += numContent.slice(sep, (sep += 3));
-    }
     
     const tta = calculateTTA(price, storage.settings, storage.incomes);
     // console.debug('tta', `${price} - ${tta.date.toLocaleString()}`, tta);
@@ -348,10 +341,12 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
         primary: Intensity,
         secondary?: Intensity,
         final: Intensity
+        note: string
     } = {
         factor: 0,
         primary: ttaColors.high,
-        final: ttaColors.high
+        final: ttaColors.high,
+        note: '⚠️'
     };
 
     if (tta.duration.years >= ttaColors.high.startAtYear) {
@@ -360,20 +355,31 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
         }
         intensity.primary = ttaColors.high;
         intensity.factor = 1;
+        intensity.note = ['💀', '☣️', '☢️'][Math.floor(3 * Math.random())];
     }
     else if (tta.duration.years >= ttaColors.medium.startAtYear) {
         intensity.primary = ttaColors.medium;
         intensity.secondary = ttaColors.high;
-        intensity.factor = 1 / (
-            _mHelper({ years: ttaColors.high.startAtYear }) - _mHelper(tta.duration)
-        );
+        intensity.factor = _mHelper(tta.duration) <= 0 
+            ? 1 : Math.pow(
+                1 / (
+                    _mHelper({ years: ttaColors.high.startAtYear }) 
+                ) * _mHelper(tta.duration), 
+                2
+            );
+        intensity.note = ['🥺', '🫣', '😓'][Math.floor(3 * Math.random())];
     }
     else if (tta.duration.years >= ttaColors.low.startAtYear) {
         intensity.primary = ttaColors.low;
         intensity.secondary = ttaColors.medium;
-        intensity.factor = 1 / (
-            _mHelper({ years: ttaColors.medium.startAtYear }) - _mHelper(tta.duration)
-        );
+        intensity.factor = _mHelper(tta.duration) <= 0 
+            ? 1 : Math.pow(
+                1 / (
+                    _mHelper({ years: ttaColors.medium.startAtYear }) 
+                ) * _mHelper(tta.duration), 
+                2
+            );
+        intensity.note = ['🙈', '🤔', '🧐'][Math.floor(3 * Math.random())];
     }
     else {
         if (intensity.secondary) {
@@ -381,6 +387,7 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
         }
         intensity.primary = ttaColors.low;
         intensity.factor = 1;
+        intensity.note = ['🤩', '👶', '😻'][Math.floor(3 * Math.random())];
     }
 
     intensity.final = intensity.primary
@@ -440,17 +447,17 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
         return formatted;
     }
 
-    let goalPrint = `${tta.goal.calculated.upfront}:- (${storage.settings.upfrontCost}% of ${tta.goal.original.price}:-, ${(storage.settings.buffer < 0 ? 'minus '+storage.settings.buffer:'plus '+storage.settings.buffer)})`;
+    let goalPrint = `<strong>${tF(tta.goal.calculated.upfront)} :-</strong> <i>(${storage.settings.upfrontCost}% of ${tF(tta.goal.original.price)}:-, ${(storage.settings.buffer < 0 ? 'minus '+tF(storage.settings.buffer):'plus '+tF(storage.settings.buffer))}:-)</i>`;
 
     const container = stringToHTML(
         '<div class="savie-hover" style="' +
             'background-image:' + intensity.final.backgroundImage.rule() +
             '; border:' + intensity.final.border.rule()+';">' +
         '<h3 id="savie-tta-headline">' + 
-             dateTimePrint +
+             intensity.note + '&ensp;' + dateTimePrint + /*' ' + intensity.note + */ 
         '</h3>' +
         '<p id="savie-tta-paragraph">' + 
-            'Total Saved: <strong>' + tta.incomeGraph.total + ':-</strong><br/>' +
+            'Total Saved: <strong>' + tF(tta.incomeGraph.total) + ' :-</strong><br/>' +
             '│<br/>' +
             '├─ Your goal of.. '+ goalPrint +'<br/>' +
             '╰─ ..will be achieved <strong>' + durationFormat(tta.duration) + '</strong> from now!' + 
