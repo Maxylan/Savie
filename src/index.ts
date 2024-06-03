@@ -21,7 +21,7 @@ export var d = document as DocumentExtended;
 if (!d || !d.savie) {
     d.savie = {
         init: false,
-        debug: true,
+        debug: false,
         valueChangeCallbacks: [],
         observerConfig: {
             childList: true,
@@ -232,8 +232,8 @@ export const action = (keyCode: number): ActionResult => {
 /**
  * Run a given action.
  */
-export const run = async (action: ActionResult): Promise<ActionResult> => {
-    if (!action || !action.callback) {
+export const run = async (action: ActionResult|ActionResultCallback): Promise<ActionResult> => {
+    if (!action || (typeof action === 'object' && !action.callback)) {
         return {
             status: Status.Failure,
             message: 'ActionResult or callback missing, nothing to run.',
@@ -241,9 +241,17 @@ export const run = async (action: ActionResult): Promise<ActionResult> => {
         };
     }
 
+    if (typeof action === 'function') {
+        action = {
+            status: Status.Running,
+            message: 'ActionResult created.',
+            callback: action as ActionResultCallback
+        }
+    }
+
     let result: ActionResult = action;
     try {
-        result = await action.callback(action);
+        result = await action!.callback!(action);
         
         if (result.callback) {
             result.callbackCount = 1;

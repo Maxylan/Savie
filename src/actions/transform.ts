@@ -1,12 +1,13 @@
 // @Maxylan
 // Transforms "prices" on the webpage to interactive dates.
 //
-import { d } from '../index';
+import { d, run } from '../index';
 import { Temporal } from '@js-temporal/polyfill'
 import { tF, debounce, stringToHTML } from '../popup/utils/functions';
 import { 
     Status, 
     ActionResult,
+    ActionResultCallback,
     ExtStorage,
     Helement,
     Settings,
@@ -124,14 +125,18 @@ export default async function Transform(prev?: ActionResult, createObserver: boo
             'savie-overridden-price',
             'savie-old-content-backup',
             'savie-hover',
+            'savie-notransform',
             'savie-tta-headline',
             'savie-tta-paragraph',
             'savie-graph',
             'savie-income-graph',
+            'savie-graph-year-separator',
             'savie-graph-datapoint',
-            'savie-graph-datapoint-graph-content', 
-            'savie-graph-datapoint-graph-active',
-            'savie-graph-datapoint-graph-inactive' 
+            'savie-graph-datapoint-line',
+            'savie-graph-datapoint-occasion',
+            'savie-graph-datapoint-content',
+            'savie-graph-datapoint-active',
+            'savie-graph-datapoint-hidden' 
         ].some(_ => node.id === _ || node.classList.contains(_))) 
         {
             if (node.textContent && pattern.test(node.textContent)) {
@@ -166,12 +171,12 @@ export default async function Transform(prev?: ActionResult, createObserver: boo
         nodes.map(_ => TransformHTML(_ as Helement, storage))
     );
 
-    console.debug('Post-transform Nodes:', nodes);
+    let dateTime: string = Temporal.Now.zonedDateTimeISO().toLocaleString();
+    // console.debug('('+dateTime+') Post `=> TransformHTML(...)` - Nodes:', nodes);
 
-    if (createObserver) {    
-        d.savie.observer = new MutationObserver(
-            debounce(() => Transform(prev, false))
-        );
+    if (createObserver) { 
+        const callback = () => run(() => Transform(prev, false));
+        d.savie.observer = new MutationObserver(debounce(callback));
     }
 
     // If we have a newly created, or disconnected observer instance..
@@ -192,7 +197,7 @@ export default async function Transform(prev?: ActionResult, createObserver: boo
 
     return {
         status: Status.Success,
-        message: '',
+        message: `(${dateTime}) Action \`transform(...)\` transformed ${nodes.length} Nodes.`,
         data: {
             observer: d.savie.observer,
             nodes: nodes
@@ -313,7 +318,7 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
     const priceNode: Helement|null = node.querySelector('.savie-overridden-price');
     const contentNode: Helement|null = node.querySelector('.savie-new-content');
     const contentBackupNode: Helement|null = node.querySelector('.savie-old-content-backup');
-    
+
     if (!contentBackupNode ||
         !contentNode ||
         !priceNode
@@ -321,6 +326,16 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
         console.warn('TransformHTML - `node` or its `.textContent` is falsy/undefined: ' + (typeof node));
         return false;
     }
+    
+    // Inherit padding/margin from the original 
+    // content's styles.
+    // Fallbacks exists to catch unset values..
+    (contentNode as HTMLSpanElement).style.padding = (
+        (node as HTMLSpanElement).style.padding || '0.08rem');
+    (contentNode as HTMLSpanElement).style.margin = (
+        (node as HTMLSpanElement).style.margin || '0 0.16rem');
+    (contentNode as HTMLSpanElement).style.display = (
+        (node as HTMLSpanElement).style.display || 'initial');
 
     let numContent: string = priceNode.textContent!.replace(/[\ SsEeKkRr\:\-]/g, '');
     let price: number = parseInt(numContent);
@@ -460,7 +475,7 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
         return formatted;
     }
 
-    let goalPrint = `<strong>${tF(tta.goal.calculated.upfront)} :-</strong>&ensp;<i>(${storage.settings.upfrontCost}% of ${tF(tta.goal.original.price)}:-, ${(storage.settings.buffer < 0 ? 'minus '+tF(storage.settings.buffer):'plus '+tF(storage.settings.buffer))}:-)</i>`;
+    let goalPrint = `<strong class="savie-notransform">${tF(tta.goal.calculated.upfront)} :-</strong>&ensp;<i class="savie-notransform">(${storage.settings.upfrontCost}% of ${tF(tta.goal.original.price)}:-, ${(storage.settings.buffer < 0 ? 'minus '+tF(storage.settings.buffer):'plus '+tF(storage.settings.buffer))}:-)</i>`;
 
     const container = stringToHTML(
         '<div class="savie-hover" style="' +
@@ -470,12 +485,12 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
              intensity.note + '&ensp;' + dateTimePrint + /*' ' + intensity.note + */ 
         '</h3>' +
         '<p id="savie-tta-paragraph">' + 
-            'You will have saved up..&ensp;<strong>' + tF(tta.incomeGraph.total) + ' :-</strong><br/>' +
+            'You will have saved up..&ensp;<strong class="savie-notransform">' + tF(tta.incomeGraph.total) + ' :-</strong><br/>' +
             '&emsp;│<br/>' +
             '&emsp;├─&ensp;Your goal of..<br/>' +
             '&emsp;│&emsp;&emsp;&ensp;'+goalPrint +'<br/>' +
             '&emsp;╰─&ensp;will be achieved..<br/>' +
-            '&emsp;&emsp;&emsp;&emsp;<strong>' + durationFormat(tta.duration) + '</strong> from now!' + 
+            '&emsp;&emsp;&emsp;&emsp;<strong class="savie-notransform">' + durationFormat(tta.duration) + '</strong> from now!' + 
         '</p>' +
         '</div>'
     );
@@ -516,7 +531,7 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
                         stringToHTML(
                             '<span id="savie-graph-'+point.data.income.id+'-datapoint" ' +
                             'class="savie-graph-datapoint" ' +
-                            'data-iteration="'+it+'" data-index="'+i+'">' +
+                            'data-iteration="'+it+'" data-year="'+curYear+'" data-index="'+i+'">' +
                             '</span>'
                         ),
                         graphLine = stringToHTML(

@@ -1,7 +1,10 @@
 /* @Maxylan */
 
+/*
 span.savie-new-content {
+    font-family: "Noto Sans", Roboto, monospace;
 }
+*/
 
 span.savie-old-content-backup {
     display: none;
@@ -54,7 +57,7 @@ div.savie-graph {
     overflow-x: scroll;
     overflow-y: visible;
     */
-    padding-bottom: 0.48rem;
+    padding: 0.32rem 0;
     margin: 0.32rem 0;
 }
 
