@@ -16,6 +16,7 @@ div.savie-hover {
     z-index: 97;
     overflow-x: scroll;
     opacity: 1;
+    color: rgb(21, 20, 26);
     font-family: "Noto Sans", Roboto, monospace;
     font-size: 12px;
     font-smooth: auto;
@@ -34,6 +35,7 @@ div.savie-hover-hidden.savie-hover-hidden {
 }
 
 h3#savie-tta-headline { 
+    color: rgb(21, 20, 26);
     font-size: 1.4rem;
     font-weight: bold;
     font-family: "Noto Sans", Roboto;
