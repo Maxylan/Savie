@@ -255,7 +255,7 @@ export const calculateTTA = (goal: number, settings: Settings, incomes: Income[]
 
         let iterationData: IncomeData = {
             sum: 0,
-            date: structuredClone(tta.date),
+            date: tta.date,
             data: incomes.map<IncomeDatapoint>((inc: Income): IncomeDatapoint => {
                 // Compare income `start`/`end` dates (if any) against current `tta.date`
                 if ((inc.start && Temporal.PlainDateTime.compare(tta.date, inc.start) === -1) ||
@@ -310,9 +310,9 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
         return false;
     }
 
-    const contentBackupNode: Helement|null = node.querySelector('.savie-overridden-price');
+    const priceNode: Helement|null = node.querySelector('.savie-overridden-price');
     const contentNode: Helement|null = node.querySelector('.savie-new-content');
-    const priceNode: Helement|undefined|null = node?.querySelector('.savie-old-content-backup');
+    const contentBackupNode: Helement|null = node.querySelector('.savie-old-content-backup');
     
     if (!contentBackupNode ||
         !contentNode ||
@@ -330,11 +330,31 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
     }
     
     const tta = calculateTTA(price, storage.settings, storage.incomes);
-    // console.debug('tta', `${price} - ${tta.date.toLocaleString()}`, tta);
+    // console.debug('tta', tta);
 
-    let _mHelper = (
-        { years = 0, months = 0 } : { years?: number, months?: number }
-    ): number => years * 12 + months
+    let calculateIntensityFactor = (
+        primary: Intensity,
+        secondary: Intensity,
+        tta: TTA
+    ): number => {
+        const _months = (
+            { years = 0, months = 0 } : { years?: number, months?: number },
+            add: number = 0
+        ): number => years * 12 + months + add;
+
+            // "Goal (secondary)" - "Start (primary)" = Steps needed to get to secondary.
+        let product = _months({ years: secondary.startAtYear }) - _months({ years: primary.startAtYear }),
+            // "Duration" - "Start" = Progress Beyond "Start"
+            progress = _months(tta.duration) - _months({ years: primary.startAtYear });
+
+        if (_months(tta.duration) <= 0 ||
+            product <= 0 || progress <= 0
+        ) {
+            return 1;
+        }
+        
+        return 1 / product * progress
+    }
     
     let intensity: {
         factor: number,
@@ -355,31 +375,19 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
         }
         intensity.primary = ttaColors.high;
         intensity.factor = 1;
-        intensity.note = ['💀', '☣️', '☢️'][Math.floor(3 * Math.random())];
+        intensity.note = ['⚰️', '💀', '☣️', '☢️'][Math.floor(4 * Math.random())];
     }
     else if (tta.duration.years >= ttaColors.medium.startAtYear) {
         intensity.primary = ttaColors.medium;
         intensity.secondary = ttaColors.high;
-        intensity.factor = _mHelper(tta.duration) <= 0 
-            ? 1 : Math.pow(
-                1 / (
-                    _mHelper({ years: ttaColors.high.startAtYear }) 
-                ) * _mHelper(tta.duration), 
-                2
-            );
-        intensity.note = ['🥺', '🫣', '😓'][Math.floor(3 * Math.random())];
+        intensity.factor = calculateIntensityFactor(intensity.primary, intensity.secondary, tta);
+        intensity.note = ['😫', '🥺', '🫣', '😓'][Math.floor(4 * Math.random())];
     }
     else if (tta.duration.years >= ttaColors.low.startAtYear) {
         intensity.primary = ttaColors.low;
         intensity.secondary = ttaColors.medium;
-        intensity.factor = _mHelper(tta.duration) <= 0 
-            ? 1 : Math.pow(
-                1 / (
-                    _mHelper({ years: ttaColors.medium.startAtYear }) 
-                ) * _mHelper(tta.duration), 
-                2
-            );
-        intensity.note = ['🙈', '🤔', '🧐'][Math.floor(3 * Math.random())];
+        intensity.factor = calculateIntensityFactor(intensity.primary, intensity.secondary, tta);
+        intensity.note = ['😳', '🙈', '🤔', '🧐'][Math.floor(4 * Math.random())];
     }
     else {
         if (intensity.secondary) {
@@ -387,7 +395,7 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
         }
         intensity.primary = ttaColors.low;
         intensity.factor = 1;
-        intensity.note = ['🤩', '👶', '😻'][Math.floor(3 * Math.random())];
+        intensity.note = ['😎', '🤩', '👶', '😻'][Math.floor(4 * Math.random())];
     }
 
     intensity.final = intensity.primary
@@ -426,8 +434,12 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
             );
     }
 
-    console.debug('intensity', intensity);
+    // console.debug('intensity', intensity);
+    priceNode.innerHTML += '&ensp;' + intensity.note;
     
+    let priceColor = lerp({r: 0, g: 0, b: 0}, intensity.final.border.color, 0.64);
+    (priceNode as HTMLSpanElement).style.color = `rgb(${priceColor.r}, ${priceColor.g}, ${priceColor.b})`;
+
     const dateTimeFormat = new Intl.DateTimeFormat('sv-SE', { 
         year: "numeric",
         month: "long",
@@ -457,12 +469,12 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
              intensity.note + '&ensp;' + dateTimePrint + /*' ' + intensity.note + */ 
         '</h3>' +
         '<p id="savie-tta-paragraph">' + 
-            'Total Saved: <strong>' + tF(tta.incomeGraph.total) + ' :-</strong><br/>' +
-            '&ensp;│<br/>' +
-            '&ensp;├─ Your goal of..<br/>' +
-            '&ensp;│&emsp;&emsp;'+goalPrint +'<br/>' +
-            '&ensp;╰─ will be achieved..<br/>' +
-            '&emsp;&emsp;&emsp;<strong>' + durationFormat(tta.duration) + '</strong> from now!' + 
+            'You will have saved up..&ensp;<strong>' + tF(tta.incomeGraph.total) + ' :-</strong><br/>' +
+            '&emsp;│<br/>' +
+            '&emsp;├─ Your goal of..<br/>' +
+            '&emsp;│&emsp;&emsp;&ensp;'+goalPrint +'<br/>' +
+            '&emsp;╰─ will be achieved..<br/>' +
+            '&emsp;&emsp;&emsp;&emsp;<strong>' + durationFormat(tta.duration) + '</strong> from now!' + 
         '</p>' +
         '</div>'
     );
@@ -480,32 +492,66 @@ export const TransformHTML = async (node: Helement, storage?: ExtStorage): Promi
         )
     );
 
+    let curYear = tta.now.year,
+        newYearSeparator = (year: number|string) => stringToHTML(
+            '<span class="savie-graph-year-separator" data-year="'+year+'">'+year+'</span>'
+        );
+    
     tta.incomeGraph.graph.forEach(
-        iteration => {
+        (iteration, it) => {
+            if (iteration.date.year !== curYear) {
+                curYear = iteration.date.year;
+                storage.incomes!.forEach(
+                    _ => incomeGraphContainers[_.id].append(
+                        newYearSeparator(curYear)
+                    )
+                );
+            }
+
             iteration.data.forEach(
                 (point, i) => {
                     const datapoint = 
                         stringToHTML(
-                            '<span id="savie-graph-'+point.data.income.id+'-datapoint"' +
-                            'class="savie-graph-datapoint" data-index="'+i+'">' + (point.data.active 
-                                ? '<span class="savie-graph-datapoint-graph-active"></span>'
-                                : '<span class="savie-graph-datapoint-graph-inactive"></span>'
-                            ) +
+                            '<span id="savie-graph-'+point.data.income.id+'-datapoint" ' +
+                            'class="savie-graph-datapoint" ' +
+                            'data-iteration="'+it+'" data-index="'+i+'">' +
+                            '</span>'
+                        ),
+                        graphLine = stringToHTML(
+                            '<span class="savie-graph-datapoint-line">' +
+                                '<span class="savie-graph-datapoint-occasion">' +
                             '</span>'
                         ),
                         content = stringToHTML(
-                            '<span class="savie-graph-datapoint-content">' +
-                            (point.data.active ? point.value : 'Not Active') +
+                            '<span class="savie-graph-datapoint-content savie-graph-datapoint-hidden">' +
+                                (point.data.active ? tF(point.value) + ':-' : 'Not Active') +
                             '</span>'
                         );
 
-                    datapoint.append(content);
+                    if (!point.data.active) {
+                        graphLine.classList.add('savie-graph-datapoint-inactive');
+                    }
 
-                    datapoint.addEventListener('mouseover', function () {
-                        (content as HTMLDivElement).style.display = 'initial';
+                    // Because when .css doesn't want to cooperate..
+                    // border-left: #15141A 1px solid;
+                    // border-right: #15141A 1px solid;
+                    if (it === 0) {
+                        (datapoint as HTMLSpanElement).style.borderLeft = '#15141A 1px solid';
+                    }
+                    else if (it === tta.incomeGraph.graph.length - 1) {
+                        (datapoint as HTMLSpanElement).style.borderRight = '#15141A 1px solid';
+                    }
+
+                    graphLine.append(content);
+                    datapoint.append(graphLine);
+
+                    datapoint.addEventListener('mouseenter', function () {
+                        content.classList.remove('savie-graph-datapoint-hidden');
+                        graphLine.classList.add('savie-graph-datapoint-hover');
                     });
-                    datapoint.addEventListener('mouseout', function () {
-                        (content as HTMLDivElement).style.display = 'hidden';
+                    datapoint.addEventListener('mouseleave', function () {
+                        graphLine.classList.remove('savie-graph-datapoint-hover');
+                        content.classList.add('savie-graph-datapoint-hidden');
                     });
 
                     incomeGraphContainers[point.data.income.id].append(datapoint);

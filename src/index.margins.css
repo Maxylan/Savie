@@ -19,9 +19,8 @@ div.savie-hover {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
     border-radius: 0.75rem;
-    padding: 0.64rem;
+    /* padding: 0.64rem; */
     width: 24rem;
     transition: display 0.16s, opacity 0.32s linear;
 }
@@ -31,14 +30,11 @@ div.savie-hover-hidden.savie-hover-hidden {
 }
 
 h3#savie-tta-headline { 
-    font-size: 1.4rem;
-    font-weight: bold;
-    font-family: "Noto Sans", Roboto;
     font-smooth: auto;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    margin: 0.32rem 0;
+    margin: 0.32rem 0.64rem;
 }
 
 p#savie-tta-paragraph { 
@@ -46,7 +42,7 @@ p#savie-tta-paragraph {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    margin: 0.32rem 0;
+    margin: 0.32rem 0.64rem;
 }
 
 div.savie-graph {
@@ -62,8 +58,9 @@ div.savie-income-graph {
     display: flex;
     width: fit-content;
     min-width: 100%;
-    padding: 0 0.8rem;
-    margin-top: 0.8rem; 
+    border-left: #15141A 1px solid;
+    border-right: #15141A 1px solid;
+    margin: 0.64rem 0.64rem 0 0.64rem; 
 }
 
 span.savie-graph-year-separator {
@@ -112,6 +109,7 @@ span.savie-graph-datapoint-occasion {
     display: initial;
     position: absolute;
     border-left: #15141A 1px solid;
+    /* border-right: #15141A 1px solid; */
     opacity: 0.32;
     height: 8px;
     top: -4px;
@@ -120,6 +118,7 @@ span.savie-graph-datapoint-occasion {
 }
 span.savie-graph-datapoint-inactive span.savie-graph-datapoint-occasion {
     border-left: #aaaaaa 1px solid;
+    /* border-right: #aaaaaa 1px solid; */
     opacity: 0.24;
 }
 
@@ -128,13 +127,11 @@ span.savie-graph-datapoint-content {
     position: absolute;
     z-index: 98;
     top: -2rem;
-    left: -1rem;
     background: #F9F9F9;
-    border-radius: 0.24rem;
-    padding: 0.16rem 0.24rem;
+    border-radius: 0.125rem;
+    padding: 0.1rem;
     opacity: 0.64;
     text-wrap: nowrap;
-    box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
     transition: display 0.16s, opacity 0.24s linear;
 }
 span.savie-graph-datapoint-content.savie-graph-datapoint-hidden { 
