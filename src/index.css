@@ -47,6 +47,7 @@ h3#savie-tta-headline {
 }
 
 p#savie-tta-paragraph { 
+    color: rgb(21, 20, 26);
     font-smooth: auto;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
