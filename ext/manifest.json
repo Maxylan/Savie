@@ -12,30 +12,30 @@
     "content_scripts": [
         {
             "matches": ["*://*/*"],
-            "css": ["index.css"],
-            "js": ["index.js"]
+            "css": ["bundle/index.css"],
+            "js": ["bundle/index.js"]
         }
     ],
   
     "action": {
         "default_title": "Savie",
-        "default_popup": "popup/savie.html",
+        "default_popup": "bundle/popup/savie.html",
         "default_icon": {
             "32": "icons/savie-ico-32.ico",
             "48": "icons/savie-ico-48.ico",
             "96": "icons/savie-ico-96.ico"
         },
         "theme_icons": [{
-            "light": "icons/savie-ico-32-light.ico",
-            "dark": "icons/savie-ico-32.ico",
+            "dark": "icons/savie-ico-dark-32.ico",
+            "light": "icons/savie-ico-32.ico",
             "size": 32
         }, {
-            "light": "icons/savie-ico-48-light.ico",
-            "dark": "icons/savie-ico-48.ico",
+            "dark": "icons/savie-ico-dark-48.ico",
+            "light": "icons/savie-ico-48.ico",
             "size": 48
         }, {
-            "light": "icons/savie-ico-96-light.ico",
-            "dark": "icons/savie-ico-96.ico",
+            "dark": "icons/savie-ico-dark-96.ico",
+            "light": "icons/savie-ico-96.ico",
             "size": 96
         }]
     },

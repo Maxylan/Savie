@@ -46,6 +46,7 @@ await esbuild.build({
     entryPoints: [
         'src/popup/controller.ts',
         'src/popup/savie.html',
+        'src/popup/savie.css'
     ],
     assetNames: '[name]',
     loader: {
@@ -54,6 +55,6 @@ await esbuild.build({
         '.png': 'file',
         '.ico': 'file',
     },
-    outbase: 'src',
+    outbase: 'src/popup',
     outdir: 'ext/bundle/popup'
 })

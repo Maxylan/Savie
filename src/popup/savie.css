@@ -20,6 +20,11 @@ header img, header h3 {
     margin: 0 0.5rem 0 0;
 }
 
+#savie-header-img {
+    max-height: 2rem;
+    max-width: 2rem;
+}
+
 hr {
     background: #c8c8c8;
     border-color: #fff;
