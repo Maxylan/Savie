@@ -48,7 +48,7 @@ if (!d || !d.savie) {
                 return;
             }
 
-            await run(action(e.keyCode));
+            await run(action(e.keyCode, e));
             
             // For logging..
             // let result: ActionResult = await run(action(e.keyCode));
@@ -69,7 +69,7 @@ export const action = (keyCode: number, ke?: KeyboardEvent): ActionResult => {
     switch(keyCode) {
         /* "§" */ case 192: 
             if (!ke) {
-                ar.callback = (d.savie.observer 
+                ar.callback = (!d.savie.observer 
                     ? Transform // Transform prices in the HTML DOM..
                     : ClearObserver // Clear any and all mutation observers..
                 );
@@ -192,7 +192,7 @@ if (!d.savie.init) {
 
     // Add callbacks that should fire when settings change..
     d.savie.onValueChange(
-        Transform
+        debounce(Transform)
     );
 
     // Add callback/listener capturing the global `onKeyDown` event.
