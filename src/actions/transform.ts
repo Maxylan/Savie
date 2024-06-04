@@ -1,9 +1,9 @@
 // @Maxylan
 // Transforms "prices" on the webpage to interactive dates.
 //
-import { d, run } from '../index';
+import { d, run } from '../index.ts';
 import { Temporal } from '@js-temporal/polyfill'
-import { tF, debounce, stringToHTML } from '../popup/utils/functions';
+import { tF, debounce, stringToHTML } from '../popup/utils/functions.ts';
 import { 
     Status, 
     ActionResult,
@@ -12,7 +12,7 @@ import {
     Helement,
     Settings,
     Income
-} from '../types';
+} from '../types.ts';
 import { 
     preDefinedTTAIntensities as ttaColors,
     TTA,
@@ -22,7 +22,7 @@ import {
     IncomeData,
     Intensity,
     lerp
-} from './transformTypes';
+} from './transformTypes.ts';
 
 /**
  * XPath used to find "numbers" (prices) on the website.

@@ -1,6 +1,6 @@
 // @Maxylan
-import { d } from '../../index';
-import { Helement } from '../../types';
+import { d } from '../../index.ts';
+import { Helement } from '../../types.ts';
 
 /**
  * 

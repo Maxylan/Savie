@@ -1,6 +1,6 @@
 // @Maxylan
-import { d } from '../../index';
-import { ExtStorage } from '../../types';
+import { d } from '../../index.ts';
+import { ExtStorage } from '../../types.ts';
 
 /**
  * 
@@ -29,19 +29,6 @@ const onIncomeChange = async (e: any, income_id: number) => {
         // console.debug('onIncomeChange, res - ', res);
 
         await browser.storage.local.set(storage);
-        switch(e.target.type) {
-            case 'date':
-                if (e.target.id.endsWith('start')) {
-                    d.savie.valueChange(''+income_id, storage.incomes![incomeIndex].start!)
-                }
-                else {
-                    d.savie.valueChange(''+income_id, storage.incomes![incomeIndex].end!)
-                }
-                break;
-            default: // Like 'number', 'slider', elements where we yoink `.value`
-                d.savie.valueChange(''+income_id, storage.incomes![incomeIndex].value)
-                break;
-        }
     }
 }
 

@@ -28,14 +28,20 @@ export type ActionResultCallback =
 export type Savie = {
     init: boolean,
     debug: boolean,
+    border: { 
+        original?: string,
+        current?: string,
+        timeout?: any
+    },
+    /** Currently-executing.. */
+    action?: ActionResult,
     observer?: MutationObserver,
     observerShutdownTimer?: number,
     observerConfig: MutationObserverInit,
     observerLifespan: number,
-    keyDownEvent: any,
     valueChangeCallbacks: ActionResult[],
     onValueChange: (...callbacks: ActionResultCallback[]) => void,
-    valueChange: (id: string, value: string|number) => void,
+    keyDownEvent: (e: Event) => Promise<any>,
 }
 
 export type DocumentExtended = Document & {

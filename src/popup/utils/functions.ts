@@ -1,17 +1,19 @@
 // @Maxylan
-import { d } from '../../index';
-import { onIncomeInput } from '../handlers/handleInput';
-import onIncomeSliderInput from '../handlers/handleSliderInput';
-import onIncomeChange from '../handlers/handleChange';
+import { d } from '../../index.ts';
+import { onIncomeInput } from '../handlers/handleInput.ts';
+import onIncomeSliderInput from '../handlers/handleSliderInput.ts';
+import onIncomeChange from '../handlers/handleChange.ts';
 import {
     Savie,
     DocumentExtended,
+    ActionResult,
+    ActionResultCallback,
     ExtStorage,
     Income,
     Settings,
     States,
     Helement 
-} from '../../types';
+} from '../../types.ts';
 
 /**
  * Multiplies the given number (microsecodns) with 1000.
@@ -202,4 +204,110 @@ export const updateIncomeWithValue = (id: number, value: number) => {
             if (index !== -1) { _.incomes[index].value = value; }
         }
     )
+}
+
+/**
+ * Helper to set the border, and restore it 
+ * after `timeout` microseconds.
+ *
+ * A spin on Mozilla's "Getting Started" guide for extensions!
+ */
+export const setBorder = (style: string, timeout: number = 3000) => {
+    if (!style) { return; }
+
+    // Clear current Border timeout & border (if unchanged), if any..
+    if (d.savie.border.timeout) {
+        clearTimeout(d.savie.border.timeout);
+    }
+    if (d.savie.border.current && d.body.style.border === d.savie.border.current) {
+        d.body.style.border = d.savie.border.original!;
+    }
+
+    // Save border details..
+    d.savie.border = {
+        // In the unlikely event a border exists, save it.
+        original: d.body.style.border
+    }
+
+    d.body.style.border = style;
+    d.savie.border.current = style;
+
+    // Restore the old body after `timeout` microseconds.
+    d.savie.border.timeout = setTimeout(
+        () => {
+            d.body.style.border = d.savie.border.original!;
+            d.savie.border = {};
+        }, timeout
+    );
+}
+
+/**
+ * Fires when an action or key can't be found.
+ */
+export const missing = (status?: string, keyCode?: number) => {
+    if (d.savie.debug) {
+        setBorder("3px solid yellow", 200);
+        console.debug(
+            '%c'+(status || 'Action/keyCode not found.')+': ', 
+            'color: lightgrey; font-size: 10px;', 
+            status, 
+            keyCode
+        ); 
+    }
+}
+
+/**
+ * Handles visualizing "partial" success:es
+ */
+export const partialSuccess = (status?: string, result?: ActionResult) => {
+    
+    let partialSuccessStyle = 'color: burlywood; font-size: 10px;';
+    console.debug('%cSavie: ' + (status || 'Partial Success!'), partialSuccessStyle, result);
+
+    if (d.savie.debug) {
+        setBorder("4px solid burlywood", 900);
+        
+        if (result?.callback || result?.callbackCount) {
+            console.debug('%cCallback: ' + result.callbackCount, partialSuccessStyle, result.callback);
+        }
+        if (result?.data) {
+            console.debug('%cData: ', partialSuccessStyle, result.data);
+        }
+    }
+}
+
+/**
+ * Handles visualizing a completely successfull run!
+ */
+export const success = (status?: string, result?: ActionResult) => {
+    
+    let successStyle = 'color: lightgreen; font-size: 10px;';
+    console.debug('%cSavie: ' + (status || 'Success!'), successStyle);
+    
+    if (d.savie.debug) {
+        setBorder("4px solid lightgreen", 900);
+        
+        if (result?.callback || result?.callbackCount) {
+            console.debug('%cCallback: ' + result.callbackCount, successStyle, result.callback);
+        }
+        if (result?.data) {
+            console.debug('%cData: ', successStyle, result.data);
+        }
+    }
+}
+
+/**
+ * Handles visualizing & logging errors.
+ */
+export const fail = (ex: any, result?: ActionResult) => {
+    setBorder("5px solid red"); // 3s, default timeout.
+    console.error('Savie Error: ', ex, result);
+    
+    if (d.savie.debug) {
+        if (result?.callback || result?.callbackCount) {
+            console.error('On Callback #' + result.callbackCount, result.callback);
+        }
+
+        //...
+    }
 }

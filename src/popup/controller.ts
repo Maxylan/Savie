@@ -1,14 +1,14 @@
 // @Maxylan
 // Injected with the Popup HTML, controlls menu interactivity and storage.
 // 
-import { d } from '../index';
-import selectChoice, { selected, Choose } from './handlers/handleSelect';
-import { onSettingInputValue } from './handlers/handleInput';
+import { d } from '../index.ts';
+import selectChoice, { selected, Choose } from './handlers/handleSelect.ts';
+import { onSettingInputValue } from './handlers/handleInput.ts';
 import {
     stringToHTML,
     spawnIncomeFromEvent,
     spawnIncome,
-} from './utils/functions';
+} from './utils/functions.ts';
 import { 
     Savie,
     DocumentExtended,
@@ -19,7 +19,7 @@ import {
     Income,
     Settings,
     Helement
-} from '../types';
+} from '../types.ts';
 
 // Init / Start!
 document.addEventListener('DOMContentLoaded', async (_) => { 

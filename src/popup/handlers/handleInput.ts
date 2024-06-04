@@ -1,6 +1,6 @@
 // @Maxylan
-import { d } from '../../index';
-import { ExtStorage, Helement  } from '../../types';
+import { d } from '../../index.ts';
+import { ExtStorage, Helement  } from '../../types.ts';
 
 /**
  * 
@@ -58,8 +58,6 @@ export const onSettingInputValue = async (e: any) => {
     }
 
     if (updateStorage) {
-        console.debug('storage', storage)
-        d.savie.valueChange(e.target.id, e.target.value);
         await browser.storage.local.set(storage);
     }
 }

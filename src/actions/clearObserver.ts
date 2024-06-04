@@ -1,12 +1,12 @@
 // @Maxylan
 // Clear any `MutationObservers` running in the background, if any!
 //
-import { d } from '../index';
+import { d } from '../index.ts';
 import { 
     Status, 
     ActionResult, 
     ExtStorage
-} from '../types';
+} from '../types.ts';
 
 export default async function ClearObserver(): Promise<ActionResult> {    
     const observerExisted = !!(d.savie.observer || d.savie.observerShutdownTimer);

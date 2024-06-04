@@ -4,11 +4,11 @@
 		"esbuild": "^0.21.3",
 		"typescript": "^5.4.5"
 	},
-	"scripts": {
-		"build": "tsc -noEmit && node build.mjs && cp -pvr src/icons dist/icons",
-		"start": "node dist/savie.js"
-	},
 	"dependencies": {
 		"@js-temporal/polyfill": "^0.4.4"
+	},
+    "type": "module",
+	"scripts": {
+		"build": "tsc -noEmit && node build.mjs"
 	}
 }

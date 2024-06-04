@@ -1,6 +1,6 @@
 // @Maxylan
-import { d } from '../../index';
-import { Page, Helement } from '../../types';
+import { d } from '../../index.ts';
+import { Page, Helement } from '../../types.ts';
 
 export const selected = 'selected';
 export enum Choose {

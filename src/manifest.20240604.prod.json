@@ -42,7 +42,7 @@
     "commands": {
         "_execute_browser_action": {
             "suggested_key": {
-                "default": "Ctrl+Shift+O"
+                "default": "Shift+O"
             }
         }
     },
@@ -52,12 +52,20 @@
         "storage"
     ],
     "host_permissions": [
+        "moz-extension://________-____-____-____-____________/",
         "*://*/*"
     ],
 
     "browser_specific_settings": {
         "gecko": {
+            "id": "________-____-____-____-____________",
             "strict_min_version": "42.0"
+        },
+        "gecko_android": {
+            "strict_min_version": "113.0"
+        },
+        "safari": {
+            "strict_min_version": "14"
         }
     }
 }

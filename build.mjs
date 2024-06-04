@@ -5,33 +5,29 @@ import * as esbuild from 'esbuild'
 await esbuild.build({
     globalName: 'Savie',
     platform: 'browser',
+    tsconfig: 'tsconfig.json',
     format: 'iife', // "Immideatly Invoked Function Expression"
     target: [
-        'es2020',
+        'esnext',
 	    'firefox121',
 	    'chrome121'
     ],
     sourcemap: 'both', // Change for prod.
-    minify: false, // Change for prod.
+    minify: true, // Change for prod.
     bundle: true,
     entryPoints: [
-        'src/index.ts',
-	    'src/index.css',
         'src/manifest.json',
-        'src/popup/controller.ts',
-        'src/popup/savie.html',
-        'src/popup/savie.css'
+        'src/index.ts',
+        'src/popups',
+        'src/icons',
     ],
     assetNames: '[name]',
     loader: {
         '.json': 'copy',
         '.html': 'copy',
         '.png': 'file',
-        '.jpg': 'file',
         '.ico': 'file',
-        '.svg': 'file'
     },
     outbase: 'src',
-    // outfile: 'dist/savie.js'
-    outdir: 'dist'
+    outdir: 'ext/bundle'
 })

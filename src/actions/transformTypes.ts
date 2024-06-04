@@ -5,7 +5,7 @@ import {
     Status, 
     Settings,
     Income
-} from '../types';
+} from '../types.ts';
 
 export interface IncomeDatapoint {
     value: number,
