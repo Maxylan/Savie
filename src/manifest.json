@@ -4,9 +4,9 @@
     "version": "2.0",
     "description": "Makes saving fun!",
     "icons": {
-        "32": "icons/savie-32.ico",
-        "48": "icons/savie-48.ico",
-        "96": "icons/savie-96.ico"
+        "32": "icons/savie-ico-32.ico",
+        "48": "icons/savie-ico-48.ico",
+        "96": "icons/savie-ico-96.ico"
     },
     
     "content_scripts": [
@@ -21,21 +21,21 @@
         "default_title": "Savie",
         "default_popup": "popup/savie.html",
         "default_icon": {
-            "32": "icons/savie-32.ico",
-            "48": "icons/savie-48.ico",
-            "96": "icons/savie-96.ico"
+            "32": "icons/savie-ico-32.ico",
+            "48": "icons/savie-ico-48.ico",
+            "96": "icons/savie-ico-96.ico"
         },
         "theme_icons": [{
-            "light": "icons/savie-32-light.ico",
-            "dark": "icons/savie-32-light.ico",
+            "light": "icons/savie-ico-32-light.ico",
+            "dark": "icons/savie-ico-32.ico",
             "size": 32
         }, {
-            "48": "icons/savie-48-light.ico",
-            "dark": "icons/savie-48.ico",
+            "light": "icons/savie-ico-48-light.ico",
+            "dark": "icons/savie-ico-48.ico",
             "size": 48
         }, {
-            "96": "icons/savie-96-light.ico",
-            "dark": "icons/savie-96.ico",
+            "light": "icons/savie-ico-96-light.ico",
+            "dark": "icons/savie-ico-96.ico",
             "size": 96
         }]
     },
