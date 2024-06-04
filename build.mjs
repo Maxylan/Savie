@@ -8,13 +8,15 @@ await esbuild.build({
     format: 'iife', // "Immideatly Invoked Function Expression"
     target: [
         'es2020',
+	    'firefox121',
+	    'chrome121'
     ],
     sourcemap: 'both', // Change for prod.
     minify: false, // Change for prod.
     bundle: true,
     entryPoints: [
         'src/index.ts',
-	'src/index.css',
+	    'src/index.css',
         'src/manifest.json',
         'src/popup/controller.ts',
         'src/popup/savie.html',

@@ -1,34 +1,14 @@
 {
-    "manifest_version": 2,
+    "manifest_version": 3,
     "name": "Savie",
-    "version": "1.0",
+    "version": "2.0",
     "description": "Makes saving fun!",
-
-    "content_security_policy": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'",
-    "permissions": [
-        "activeTab",
-        "storage"
-    ],
-
     "icons": {
-        "48": "icons/savie-48.ico"
+        "32": "icons/savie-32.ico",
+        "48": "icons/savie-48.ico",
+        "96": "icons/savie-96.ico"
     },
-  
-    "browser_action": {
-        "default_icon": {
-            "48": "icons/savie-48.ico"
-        },
-        "default_title": "Savie",
-        "default_popup": "popup/savie.html"
-    },
-    "commands": {
-        "_execute_browser_action": {
-            "suggested_key": {
-                "default": "Shift+Alt+O"
-            }
-        }
-    },
-
+    
     "content_scripts": [
         {
             "matches": ["*://*/*"],
@@ -36,9 +16,49 @@
             "js": ["index.js"]
         }
     ],
+  
+    "action": {
+        "default_title": "Savie",
+        "default_popup": "popup/savie.html",
+        "default_icon": {
+            "32": "icons/savie-32.ico",
+            "48": "icons/savie-48.ico",
+            "96": "icons/savie-96.ico"
+        },
+        "theme_icons": [{
+            "light": "icons/savie-32-light.ico",
+            "dark": "icons/savie-32-light.ico",
+            "size": 32
+        }, {
+            "48": "icons/savie-48-light.ico",
+            "dark": "icons/savie-48.ico",
+            "size": 48
+        }, {
+            "96": "icons/savie-96-light.ico",
+            "dark": "icons/savie-96.ico",
+            "size": 96
+        }]
+    },
+    "commands": {
+        "_execute_browser_action": {
+            "suggested_key": {
+                "default": "Shift+O"
+            }
+        }
+    },
+
+    "permissions": [
+        "activeTab",
+        "storage"
+    ],
+    "host_permissions": [
+        "moz-extension://________-____-____-____-____________/",
+        "*://*/*"
+    ],
 
     "browser_specific_settings": {
         "gecko": {
+            "id": "________-____-____-____-____________",
             "strict_min_version": "42.0"
         },
         "gecko_android": {
