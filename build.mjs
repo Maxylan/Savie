@@ -13,13 +13,11 @@ await esbuild.build({
 	    'chrome121'
     ],
     sourcemap: 'both', // Change for prod.
-    minify: true, // Change for prod.
+    minify: true, // `true` for prod.
     bundle: true,
     entryPoints: [
-        'src/manifest.json',
         'src/index.ts',
-        'src/popups',
-        'src/icons',
+        'src/index.css',
     ],
     assetNames: '[name]',
     loader: {
@@ -30,4 +28,32 @@ await esbuild.build({
     },
     outbase: 'src',
     outdir: 'ext/bundle'
+});
+
+await esbuild.build({
+    globalName: 'SaviePopup',
+    platform: 'browser',
+    tsconfig: 'tsconfig.json',
+    format: 'iife', // "Immideatly Invoked Function Expression"
+    target: [
+        'esnext',
+	    'firefox121',
+	    'chrome121'
+    ],
+    sourcemap: 'both', // Change for prod.
+    minify: true, // `true` for prod.
+    bundle: true,
+    entryPoints: [
+        'src/popup/controller.ts',
+        'src/popup/savie.html',
+    ],
+    assetNames: '[name]',
+    loader: {
+        '.json': 'copy',
+        '.html': 'copy',
+        '.png': 'file',
+        '.ico': 'file',
+    },
+    outbase: 'src',
+    outdir: 'ext/bundle/popup'
 })

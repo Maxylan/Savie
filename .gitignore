@@ -1,3 +1,9 @@
+### Custom ignores..
+
+ext/bundle/**/*
+
+### Auto-generated:
+
 # Logs
 logs
 *.log
